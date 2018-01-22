@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top is-dark">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voysis - Javascript Test Client</title>
+    <meta name="description" content=""/>
+    <script src="https://use.typekit.net/vcx5wpb.js"></script>
+      <script>try {
+          Typekit.load({async: true});
+      } catch (e) {
+      }</script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animate.css">
+  </head>
+  <body class="animated fadeIn is-dark">
+
+  <nav class="navbar is-dark">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="">
+          <img src="i/js-tester/voysis-logo-white.svg" width="133" height="40" style="margin-left: -9px" scale="0">
+        </a>
+        <div class="navbar-end is-flex-touch">
+          <a class="navbar-item show-settings-modal">
+            <span class="icon">
+              <img src="i/js-tester/icon-settings.svg">
+            </span>
+          </a>
+            <a class="navbar-item" onclick="toggleHelp()">
+            <span class="icon">
+              <img src="i/js-tester/icon-help.svg">
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Results -->
+  <section class="section has-no-top-padding">
+    <div class="container">
+      <div class="columns is-multiline">
+
+        <!-- Start Code -->
+        <div class="column is-full">
+          <div id="jsonCode" class="is-active">
+            <pre><code id="queryResult">The response will be displayed here.</code></pre>
+          </div>
+          <div id="musicHelp">
+            <h2 class="title has-text-centered">What can you say?<h2>
+            <p class="has-text-centered">
+              “Play some music”<br><br>
+              “Play Michael Jackson”<br><br>
+              “Something more upbeat”<br><br>
+              “Play something happier”<br><br>
+              “Slow it down”<br><br>
+              “Play Thriller”<br><br>
+            </p>
+          </div>
+          <div id="commerceHelp">
+            <h2 class="title has-text-centered">Here are some example things you can ask:<h2>
+            <p class="has-text-centered">
+              “Product Search: "Show me some ..." "I am looking for ..."”<br><br>
+              “Sorting: "I want the cheapest ...", "What are the most popular ... "”<br><br>
+              “Add to cart: "Add this to my cart"”<br><br>
+              “Order Status: "What is the status of my order", "Where's the stuff I ordered"”<br><br>
+              “Transact: "I want to pay now", "What's in my cart", "Take me to checkout"”<br><br>
+            </p>
+          </div>
+        </div>
+        <!-- End Code -->
+
+      </div>
+    </div>
+  </section>
+  <!-- End Results-->
+
+  <!-- Fixed bottom -->
+  <div class="control-container-fixed">
+    <div class="container">
+      <div class="is-flex-touch is-flex-tablet">
+        <div class="button-container">
+          <a id="micButton" class="is-mic-button" data-target="micIcon">
+            <img src="i/js-tester/icon-mic.svg" class="mic-icon">
+            <span class="is-short"></span>
+            <span></span>
+            <span class="is-short"></span>
+          </a>
+        </div>
+          <!-- Start Notification -->
+        <div class="notification-container">
+          <div class="notification is-success" id="statusBar">
+            <div class="columns">
+              <div class="column is-10-desktop" id="statusMessage">
+                <p>Press the mic and start talking.</p>
+              </div>
+              <div class="column is-2-desktop">
+                <div class="buttons is-right">
+                  <a class="button is-small show-feedback-modal">Feedback</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          <!-- End notification -->
+      </div>
+    </div>
+  </div>
+  <!-- End Fixed bottom -->
+
+  <!-- Modal - Feedback -->
+  <div id="feedbackModal" class="modal fadeInUp">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+
+      <header class="modal-card-head">
+        <h2 class="modal-card-title">Feedback</h2>
+        <button class="delete modal-card-close" aria-label="close"></button>
+      </header>
+
+      <section class="modal-card-body has-no-bottom-padding">
+        <p>Please rate your last interaction.</p>
+      </section>
+      <section class="modal-card-body has-no-top-padding">
+        <div class="rating">
+          <a class="button is-small has-icon star" value="1" data-target="starButton">
+            <span class="icon is-large">
+              <i class="icon-star is-active" id="starButton"></i>
+            </span>
+          </a>
+          <a class="button is-small has-icon" value="2">
+            <span class="icon is-large">
+              <i class="icon-star is-active"></i>
+            </span>
+          </a>
+          <a class="button is-small has-icon" value="3">
+            <span class="icon is-large">
+              <i class="icon-star is-active"></i>
+            </span>
+          </a>
+          <a class="button is-small has-icon" value="4">
+            <span class="icon is-large">
+              <i class="icon-star is-active"></i>
+            </span>
+          </a>
+          <a class="button is-small has-icon" value="5">
+            <span class="icon is-large">
+              <i class="icon-star is-active"></i>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="modal-card-body">
+        <div class="field">
+          <div class="control">
+            <textarea class="textarea" id="feedbackDescription" type="text" placeholder="Comments"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <footer class="modal-card-foot">
+        <button class="button is-small" onclick="sendFeedback()">Send feedback</button>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Modal - Settings -->
+  <div id="settingsModal" class="modal fadeInUp">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <h2 class="modal-card-title">Settings</h2>
+        <button class="delete modal-card-close" aria-label="close"></button>
+      </header>
+      <section class="modal-card-body">
+
+        <!-- form -->
+        <form>
+          <label class="label">Your endpoint URL</label>
+          <div class="field has-addons">
+            <div class="control is-expanded">
+                <input class="input hostname" type="url" id="settingsHostname" placeholder="Endpoint URL" required>
+            </div>
+          </div>
+            <label class="label">Your refresh token</label>
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input refreshToken" type="url" id="settingsRefreshToken" placeholder="Leave blank to use default" required>
+                </div>
+            </div>
+        </form>
+        <!-- Form end -->
+
+      </section>
+      <footer class="modal-card-foot">
+          <button class="button is-small" onclick="closeModalAndUpdate('settingsModal', $('#settingsHostname').val(), $('#settingsRefreshToken').val())">Update</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Modal - Submit Url -->
+      <div id="gettingStartedModal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+          <h2 class="modal-card-title">Please enter your URL and refresh token</h2>
+      </header>
+      <section class="modal-card-body">
+
+          <!-- form -->
+          <form>
+              <label class="label">Your endpoint URL</label>
+              <div class="field has-addons">
+                  <div class="control is-expanded">
+                      <input class="input hostname" type="url" id="gettingStartedHostname" placeholder="Endpoint URL" required>
+                  </div>
+              </div>
+              <label class="label">Your refresh token</label>
+              <div class="field has-addons">
+                  <div class="control is-expanded">
+                      <input class="input refreshToken" type="url" id="gettingStartedRefreshToken" placeholder="Leave blank to use default" required>
+                  </div>
+              </div>
+          </form>
+          <!-- Form end -->
+
+      </section>
+        <footer class="modal-card-foot">
+            <button class="button is-small" onclick="closeModalAndUpdate('gettingStartedModal', $('#gettingStartedHostname').val(), $('#gettingStartedRefreshToken').val())">Get Started</button>
+        </footer>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+      <script src="https://cdn.voysis.io/js/voysis.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/mic-button.js"></script>
+  <script src="js/client.js"></script>
+  <script>
+      var help;
+      var lastQuery;
+      var currentRating = 5;
+      var sessionApiToken_ = null;
+      const DEFAULT_REFRESH_TOKEN = 'f9a1ecaad566152168c49352ba2e914c01d2fbaa669c03ad94842e1f653ab550';
+      $(document).ready(function () {
+          voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
+          var hostname = getUrlParameter('hostname');
+          if (updateHostnameField(hostname) == null) {
+              hostname = voysisClient.getHost();
+              if (updateHostnameField(hostname) == null) {
+                  $('#gettingStartedModal').addClass('is-active');
+              }
+          }
+          if (!voysisClient.getRefreshToken()) {
+              updateRefreshTokenField(DEFAULT_REFRESH_TOKEN);
+          }
+          var serviceType = getUrlParameter('servicetype');
+          setHelpMessage(serviceType);
+      });
+
+      function updateHostnameField(hostname) {
+          if (hostname == '') {
+              hostname = null;
+          }
+          voysisClient.setHost(hostname);
+          $('.hostname').val(hostname);
+          resetState();
+          return hostname;
+      }
+
+      function updateRefreshTokenField(refreshToken) {
+          if (!refreshToken) {
+              refreshToken = DEFAULT_REFRESH_TOKEN;
+          }
+          voysisClient.setRefreshToken(refreshToken);
+          $('.refreshToken').val(refreshToken);
+          resetState();
+      }
+
+      function closeModalAndUpdate(modal, hostname, refreshToken) {
+          updateHostnameField(hostname);
+          updateRefreshTokenField(refreshToken);
+          $('#' + modal).removeClass('is-active');
+      }
+
+      function resetState() {
+          resetFeedback();
+          $('#queryResult').html('The response will be displayed here.');
+          voysisClient.finished('Press the mic and start talking.');
+      }
+
+      function setHelpMessage(serviceType) {
+          if (serviceType === "music") {
+              help = $('#musicHelp');
+              help.addClass('is-active');
+              $('#jsonCode').removeClass('is-active');
+          } else if (serviceType === "commerce") {
+              help = $('#commerceHelp');
+              help.addClass('is-active');
+              $('#jsonCode').removeClass('is-active');
+          }
+      }
+
+      function getUrlParameter(sParam) {
+          var sPageURL = window.location.search.substring(1);
+          var sURLVariables = sPageURL.split('&');
+          for (var i = 0; i < sURLVariables.length; i++)
+          {
+              var sParameterName = sURLVariables[i].split('=');
+              if (sParameterName[0] == sParam)
+              {
+                  return sParameterName[1];
+              }
+          }
+      }
+
+      function toggleHelp() {
+          if (help != null) {
+              $('#jsonCode').toggleClass('is-active');
+              help.toggleClass('is-active');
+          }
+      }
+
+      function resetFeedback() {
+          $('#feedbackDescription').val("");
+          $('.rating .button .icon .icon-star').addClass('is-active');
+          currentRating = 5;
+          lastQuery = null;
+      }
+
+      function startQuery(mic_button) {
+          var host = voysisClient.getHost();
+          console.log('Sending query to: ', host);
+          if (host && host != '') {
+              voysisClient.info('Creating conversation...');
+              var voysisSession = voysisClient.getVoysisSession();
+              var audioContext = voysisClient.getAudioContext();
+              voysisSession.createConversation('en-us', audioContext).then(function (conversation) {
+                  return voysisSession.createAudioQuery(conversation);
+              }).then(function (audioQuery) {
+                  lastQuery = audioQuery;
+                  voysisClient.warn('Listening...');
+                  console.log(lastQuery);
+                  return voysisSession.streamAudio();
+              }).then(function (queryResults) {
+                  mic_button.classList.remove('is-active');
+                  voysisClient.finished('Query complete.');
+                  $('#queryResult').html(JSON.stringify(queryResults, null, 4));
+                  if (help != null) {
+                      $('#jsonCode').addClass('is-active');
+                      help.removeClass('is-active');
+                  }
+              }).catch(function (error) {
+                  console.log(error);
+                  mic_button.classList.remove('is-active');
+                  voysisClient.error('Query error.');
+              });
+          } else {
+              mic_button.classList.remove('is-active');
+              voysisClient.error('You must enter your AI hostname.');
+          }
+      }
+
+      function stopQuery() {
+          voysisClient.info('Retrieving response...');
+          var voysisSession = voysisClient.getVoysisSession();
+          voysisSession.finishStreamingAudio();
+      }
+
+      function sendFeedback() {
+          if (lastQuery) {
+              checkSessionToken().then(function (sessionApiToken) {
+                  sessionApiToken_ = sessionApiToken;
+                  sessionApiToken_.expiresAtEpoch = Date.parse(sessionApiToken.expiresAt);
+                  var host = voysisClient.getHost();
+                  var feedbackUrl = 'https://' + host + lastQuery._links.self.href + '/feedback';
+                  console.log('Sending feedback to: ', feedbackUrl);
+                  console.log(JSON.stringify({
+                      'rating': currentRating,
+                      'description': $('#feedbackDescription').val()
+                  }));
+                  try {
+                      $.ajax({
+                          headers: {
+                              'Authorization': 'Bearer ' + sessionApiToken_.token,
+                              'Accept': 'application/vnd.voysisquery.v1+json',
+                              'Content-Type': 'application/json'
+                          },
+                          type: 'POST',
+                          url: feedbackUrl,
+                          data: JSON.stringify({
+                              "rating": currentRating,
+                              "description": $('#feedbackDescription').val()
+                          }),
+                          success: function (result) {
+                              console.log(result);
+                              voysisClient.finished('Feedback submitted');
+                              resetFeedback();
+                          },
+                          error: function () {
+                              voysisClient.error("Feedback failed.");
+                          }
+                      });
+                  } catch (err) {
+                      voysisClient.error("Feedback failed.");
+                  }
+              }).catch(function (error) {
+                  voysisClient.error(error);
+              });
+              voysisClient.info('Sending feedback...');
+          } else {
+              voysisClient.error("You must perform a query before sending feedback");
+              resetFeedback();
+          }
+          $('#feedbackModal').removeClass('is-active');
+      }
+
+      function checkSessionToken() {
+          if (sessionApiToken_ == null || sessionApiToken_.expiresAtEpoch < (Date.now() + 30000)) {
+              return new Promise(function (resolve, reject) {
+                  var tokenUrl = 'https://' + voysisClient.getHost() + '/tokens';
+                  console.log('Sending token request to: ', tokenUrl);
+                  try {
+                      $.ajax({
+                          headers: {
+                              'Authorization': 'Bearer ' + voysisClient.getRefreshToken(),
+                              'Content-Type': 'application/json'
+                          },
+                          type: 'POST',
+                          url: tokenUrl,
+                          success: function (apiToken) {
+                              resolve(apiToken);
+                          },
+                          error: function () {
+                              reject("Token refresh failed.");
+                          }
+                      });
+                  } catch (err) {
+                      reject("Token refresh failed.");
+                  }
+              });
+          } else {
+              return new Promise(function (resolve) {
+                  resolve(sessionApiToken_);
+              });
+          }
+      }
+
+      $(function() {
+          $('.rating .button').click(function() {
+              $('.rating .button .icon .icon-star').removeClass('is-active');
+              $(this).prevAll().find('i').addClass('is-active');
+              $(this).find('i').addClass('is-active');
+              currentRating = Number($(this).attr('value'));
+          });
+      });
+  </script>
+ </body>
+</html>
