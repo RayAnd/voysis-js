@@ -9,9 +9,7 @@ streamed from the device microphone.
 Documentation
 -------------
 
-The full documentation for this library can be found here:
-
-    https://developers.voysis.com/docs
+The full documentation for this library can be found here: [Voysis Developer Documentation](https://developers.voysis.com/docs) 
 
 Basic Usage
 -----------
