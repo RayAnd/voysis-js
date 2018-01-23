@@ -11,15 +11,15 @@
         <div class="container-fluid">
             <form>
                 <div class="mt-2 row">
-                    <div class="col col-xs-12 col-sm-6">
+                    <div class="col col-12 col-md-6">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Hostname</span>
                             </div>
-                            <input type="text" class="form-control" id="hostname" onchange="updateHost()">
+                            <input type="url" class="form-control" id="hostname" onchange="updateHost()">
                         </div>
                     </div>
-                    <div class="col col-xs-12 col-sm-6">
+                    <div class="col col-12 col-md-6">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">Refresh Token</span>
@@ -30,13 +30,13 @@
                 </div>
             </form>
             <div class="mt-2 row">
-                <div class="col col-xs-12 col-sm-6">
+                <div class="col col-12 col-sm-6">
                     <button id="startStreaming" type="button" class="btn btn-primary btn-block btn-lg"
                             onclick="startStreaming()">
                         Start Streaming
                     </button>
                 </div>
-                <div class="col col-xs-12 col-sm-6">
+                <div class="col col-12 col-sm-6">
                     <button id="clearMessages" type="button" class="btn btn-secondary btn-block btn-lg"
                             onclick="clearMessages()">
                         Clear Messages
