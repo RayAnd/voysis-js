@@ -116,11 +116,6 @@
 
             },
 
-            updateContext: function (queryResults) {
-                var query = queryResults.textQuery.text
-                window.sessionStorage.setItem("prevQuery", query)
-            },
-
             info: function (message) {
                 this.showStatus('is-info', message);
             },
