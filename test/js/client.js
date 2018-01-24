@@ -91,7 +91,7 @@
             },
 
             getVoysisSession: function () {
-                if (sessionChanged_) {
+                if (!voysisSession_ || sessionChanged_) {
                     voysisSession_ = new VoysisSession({
                         refreshToken: refreshToken_,
                         host: host_,
