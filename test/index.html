@@ -3,26 +3,47 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
         <script src="../src/js/voysis.js"></script>
+        <script src="js/client.js"></script>
     </head>
     <body>
         <div class="container-fluid">
-            <div class="row">
-                <div class="col col-xs-12 col-sm-6">
+            <form>
+                <div class="mt-2 row">
+                    <div class="col col-12 col-md-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Hostname</span>
+                            </div>
+                            <input type="url" class="form-control" id="hostname" onchange="updateHost()">
+                        </div>
+                    </div>
+                    <div class="col col-12 col-md-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Refresh Token</span>
+                            </div>
+                            <input type="text" class="form-control" id="refreshToken" onchange="updateRefreshToken()">
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="mt-2 row">
+                <div class="col col-12 col-sm-6">
                     <button id="startStreaming" type="button" class="btn btn-primary btn-block btn-lg"
                             onclick="startStreaming()">
                         Start Streaming
                     </button>
                 </div>
-                <div class="col col-xs-12 col-sm-6">
+                <div class="col col-12 col-sm-6">
                     <button id="clearMessages" type="button" class="btn btn-secondary btn-block btn-lg"
                             onclick="clearMessages()">
                         Clear Messages
                     </button>
                 </div>
             </div>
-            <div class="row">
+            <div class="mt-2 row">
                 <div class="col">
                     <h3>Log Messages</h3>
                     <ul id="logMessages">
@@ -63,15 +84,8 @@
                 }
             }
             function startStreaming() {
-                var voysisSession = new VoysisSession({
-                    refreshToken: 'f9a1ecaad566152168c49352ba2e914c01d2fbaa669c03ad94842e1f653ab550',
-                    host: 'ouranos.voysis.io',
-                    audioProfile: 'f8338e44-9d48-11e7-abc4-cec278b6b50a',
-                    debugEnabled: true,
-                    streamingAudioDeadline: 10000
-                });
-                console.log('Using JS library version: ', voysisSession.version);
-                voysisSession.sendAudioQuery('en-us').then(function (queryResult) {
+                console.log('Using JS library version: ', VoysisSession.version);
+                voysisClient.getVoysisSession().sendAudioQuery('en-us').then(function (queryResult) {
                     if (queryResult['textQuery'] && queryResult['textQuery']['text']) {
                         console.log('You said: ' + queryResult['textQuery']['text']);
                     } else {
@@ -81,6 +95,14 @@
                     console.log("QUERY ERROR: ", error);
                 });
             }
+            function updateHost(host) {
+                voysisClient.setHost(document.getElementById('hostname').value);
+            }
+            function updateRefreshToken(refreshToken) {
+                voysisClient.setRefreshToken(document.getElementById('refreshToken').value);
+            }
+            document.getElementById('hostname').value = voysisClient.getHost();
+            document.getElementById('refreshToken').value = voysisClient.getRefreshToken();
         </script>
     </body>
 </html>
