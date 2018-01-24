@@ -110,7 +110,8 @@
             'queryType': 'audio',
             'audioQuery': {
                 'mimeType': 'audio/wav'
-            }
+            },
+            'context': {"prevQuery": window.sessionStorage.getItem("prevQuery")} || {}
         });
     };
 
@@ -203,7 +204,7 @@
         } else {
             return new Promise(function (resolve, reject) {
                 debug('Opening WebSocket');
-                webSocket_ = new WebSocket('wss://' + args_.host + '/websocketapi');
+                webSocket_ = new WebSocket('ws://' + args_.host + '/websocketapi');
                 webSocket_.onopen = function (event) {
                     debug('WebSocket onopen: ', event);
                     resolve();
@@ -392,3 +393,4 @@
 
     return VoysisSession;
 });
+

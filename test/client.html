@@ -236,7 +236,8 @@
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-      <script src="https://cdn.voysis.io/js/voysis.js"></script>
+      <script src="../src/js/voysis.js"></script>
+      <!--<script src="https://cdn.voysis.io/js/voysis.js"></script>-->
   <script src="js/modal.js"></script>
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
@@ -347,6 +348,7 @@
                   console.log(lastQuery);
                   return voysisSession.streamAudio();
               }).then(function (queryResults) {
+                  voysisClient.updateContext(queryResults);
                   mic_button.classList.remove('is-active');
                   voysisClient.finished('Query complete.');
                   $('#queryResult').html(JSON.stringify(queryResults, null, 4));
@@ -461,3 +463,4 @@
   </script>
  </body>
 </html>
+
