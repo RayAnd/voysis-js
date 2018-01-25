@@ -71,17 +71,17 @@
         stopStreaming_ = true;
     };
 
-    VoysisSession.prototype.sendAudioQuery = function (language, contextQuery) {
-        return this.sendAudioQuery(language, null, contextQuery);
+    VoysisSession.prototype.sendAudioQuery = function (language, context) {
+        return this.sendAudioQuery(language, null, context);
     };
 
-    VoysisSession.prototype.sendAudioQuery = function (language, audioContext, contextQuery) {
+    VoysisSession.prototype.sendAudioQuery = function (language, audioContext, context) {
         checkAudioContext(audioContext);
         var self = this;
         return checkSessionToken().then(function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
             var queriesUrl = '/conversations/*/queries';
-            return Promise.all([sendCreateAudioQueryRequest(queriesUrl, true, contextQuery), self.streamAudio()]);
+            return Promise.all([sendCreateAudioQueryRequest(queriesUrl, true, context), self.streamAudio()]);
         });
     };
 
@@ -104,8 +104,8 @@
         return sendAudioRequest('GET', '/conversations', null);
     };
 
-    VoysisSession.prototype.createAudioQuery = function (conversation, contextQuery) {
-        return sendCreateAudioQueryRequest(conversation._links.queries.href, false, contextQuery);
+    VoysisSession.prototype.createAudioQuery = function (conversation, context) {
+        return sendCreateAudioQueryRequest(conversation._links.queries.href, false, context);
     };
 
     VoysisSession.prototype.streamAudio = function () {
@@ -183,13 +183,13 @@
         });
     };
 
-    function sendCreateAudioQueryRequest(queriesUrl, skipCheckSessionToken, contextQuery) {
+    function sendCreateAudioQueryRequest(queriesUrl, skipCheckSessionToken, context) {
         return sendAudioRequest('POST', queriesUrl, {
             'queryType': 'audio',
             'audioQuery': {
                 'mimeType': 'audio/wav'
             },
-            'context': {"prevQuery": contextQuery} || {}
+            'context': context || {}
 
         }, skipCheckSessionToken);
     }

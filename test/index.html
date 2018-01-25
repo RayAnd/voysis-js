@@ -84,9 +84,9 @@
                 }
             }
             function startStreaming() {
-                contextQuery = window.sessionStorage.getItem("prevQuery")
+                context = {"prevQuery": window.sessionStorage.getItem("prevQuery")}
                 console.log('Using JS library version: ', VoysisSession.version);
-                voysisClient.getVoysisSession().sendAudioQuery('en-us', null, contextQuery).then(function (queryResult) {
+                voysisClient.getVoysisSession().sendAudioQuery('en-us', null, context).then(function (queryResult) {
                     if (queryResult[1].textQuery && queryResult[1].textQuery.text) {
                         window.sessionStorage.setItem("prevQuery", queryResult[1].textQuery.text)
                         console.log('You said: ' + queryResult[1].textQuery.text);
