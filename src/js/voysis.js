@@ -71,41 +71,32 @@
         stopStreaming_ = true;
     };
 
-    VoysisSession.prototype.sendAudioQuery = function (language, context) {
-        return this.sendAudioQuery(language, null, context);
-    };
-
     VoysisSession.prototype.sendAudioQuery = function (language, context, audioContext) {
         checkAudioContext(audioContext);
         var self = this;
         return checkSessionToken().then(function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
             var queriesUrl = '/conversations/*/queries';
-            return Promise.all([sendCreateAudioQueryRequest(queriesUrl, context, true), self.streamAudio()]);
+            var headers = {'Accept-Language': language};
+            return Promise.all([sendCreateAudioQueryRequest(queriesUrl, context, headers, true), self.streamAudio()]);
         });
-    };
-
-    VoysisSession.prototype.createConversation = function (language) {
-        return this.createConversation(language, null);
     };
 
     VoysisSession.prototype.createConversation = function (language, audioContext) {
         checkAudioContext(audioContext);
-        return sendAudioRequest('POST', '/conversations', {
-            'lang': language
-        });
+        return sendAudioRequest('POST', '/conversations', null, {'Accept-Language': language});
     };
 
     VoysisSession.prototype.getConversation = function (conversationId) {
-        return sendAudioRequest('GET', '/conversations/' + conversationId, null);
+        return sendAudioRequest('GET', '/conversations/' + conversationId);
     };
 
     VoysisSession.prototype.listConversations = function () {
-        return sendAudioRequest('GET', '/conversations', null);
+        return sendAudioRequest('GET', '/conversations');
     };
 
     VoysisSession.prototype.createAudioQuery = function (conversation, context) {
-        return sendCreateAudioQueryRequest(conversation._links.queries.href, context, false);
+        return sendCreateAudioQueryRequest(conversation._links.queries.href, context, null, false);
     };
 
     VoysisSession.prototype.streamAudio = function () {
@@ -183,19 +174,19 @@
         });
     };
 
-    function sendCreateAudioQueryRequest(queriesUrl, context, skipCheckSessionToken) {
+    function sendCreateAudioQueryRequest(queriesUrl, context, additionalHeaders, skipCheckSessionToken) {
         return sendAudioRequest('POST', queriesUrl, {
             'queryType': 'audio',
             'audioQuery': {
                 'mimeType': 'audio/wav'
             },
             'context': context || {}
-        }, skipCheckSessionToken);
+        }, additionalHeaders, skipCheckSessionToken);
     }
 
     function checkAudioContext(audioContext) {
         audioContext_ = audioContext || audioContext_;
-        if (audioContext_ === null) {
+        if (audioContext_ == null) {
             debug('Creating new AudioContext');
             audioContext_ = new AudioContext();
         }
@@ -270,15 +261,16 @@
         callFunction(callback, callbackArg);
     }
 
-    function sendAudioRequest(method, uri, entity, skipCheckSessionToken) {
+    function sendAudioRequest(method, uri, entity, additionalHeaders, skipCheckSessionToken) {
         var sendRequestFunction = function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
-            var additionalHeaders = {
+            var audioHeaders = {
                 'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
                 'X-Voysis-Ignore-Vad': false,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
-            return sendRequest(method, uri, entity, additionalHeaders, sessionApiToken_.token)
+            audioHeaders = Object.assign(audioHeaders, additionalHeaders);
+            return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token)
         };
         if (skipCheckSessionToken) {
             return sendRequestFunction(sessionApiToken_);
@@ -316,10 +308,10 @@
                         'Authorization': 'Bearer ' + refreshToken
                     }
                 };
-                if (entity !== null) {
+                if (entity != null) {
                     msg.entity = entity;
                 }
-                if (additionalHeaders !== null) {
+                if (additionalHeaders != null) {
                     msg.headers = Object.assign(msg.headers, additionalHeaders);
                 }
                 debug('Sending request: ', msg);
