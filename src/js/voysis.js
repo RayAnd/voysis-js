@@ -50,7 +50,7 @@
     function VoysisSession(args) {
         args_ = args || {};
         checkProperty(args_, 'host');
-        checkProperty(args_, 'audioProfile');
+        checkProperty(args_, 'audioProfileId');
         checkProperty(args_, 'refreshToken');
         args_.debugEnabled = args_.debugEnabled || false;
         args_.streamingAudioDeadline = args_.streamingAudioDeadline || 20000;
@@ -190,7 +190,6 @@
                 'mimeType': 'audio/wav'
             },
             'context': context || {}
-
         }, skipCheckSessionToken);
     }
 
@@ -275,7 +274,7 @@
         var sendRequestFunction = function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
             var additionalHeaders = {
-                'X-Voysis-Audio-Profile': args_.audioProfile,
+                'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
                 'X-Voysis-Ignore-Vad': false,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
