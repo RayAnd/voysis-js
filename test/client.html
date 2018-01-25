@@ -236,8 +236,7 @@
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-      <script src="https://cdn.voysis.io/js/voysis.js"></script>
-      <!--<script src="../src/js/voysis.js"></script>-->
+  <script src="https://cdn.voysis.io/js/voysis.js"></script>
   <script src="js/modal.js"></script>
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
@@ -341,7 +340,7 @@
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
               voysisSession.createConversation('en-us', audioContext).then(function (conversation) {
-                  context = {"prevQuery": window.sessionStorage.getItem("prevQuery")}
+                  var context = {"prevQuery": window.sessionStorage.getItem("prevQuery")};
                   return voysisSession.createAudioQuery(conversation, context);
               }).then(function (audioQuery) {
                   lastQuery = audioQuery;
@@ -349,7 +348,7 @@
                   console.log(lastQuery);
                   return voysisSession.streamAudio();
               }).then(function (queryResults) {
-                  window.sessionStorage.setItem("prevQuery", queryResults.textQuery.text)
+                  window.sessionStorage.setItem("prevQuery", queryResults.textQuery.text);
                   mic_button.classList.remove('is-active');
                   voysisClient.finished('Query complete.');
                   $('#queryResult').html(JSON.stringify(queryResults, null, 4));
