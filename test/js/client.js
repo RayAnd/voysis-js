@@ -25,13 +25,13 @@
     'use strict';
 
     function VoysisClient() {
-        const AUDIO_PROFILE = 'AudioProfileId';
+        const AUDIO_PROFILE_ID = 'AudioProfileId';
         const HOST = 'Host';
         const REFRESH_TOKEN = 'RefreshToken';
         const localStorage = window.localStorage;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext_;
-        var audioProfile_ = localStorage.getItem(AUDIO_PROFILE) || createAudioProfile();
+        var audioProfileId_ = localStorage.getItem(AUDIO_PROFILE_ID) || createAudioProfileId();
         var host_ = localStorage.getItem(HOST);
         var refreshToken_ = localStorage.getItem(REFRESH_TOKEN);
         var voysisSession_;
@@ -47,20 +47,20 @@
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         }
 
-        function createAudioProfile() {
-            var audioProfile = createUuid();
-            localStorage.setItem(AUDIO_PROFILE, audioProfile);
-            return audioProfile;
+        function createAudioProfileId() {
+            var audioProfileId = createUuid();
+            localStorage.setItem(AUDIO_PROFILE_ID, audioProfileId);
+            return audioProfileId;
         }
 
         var voysisClient = {
-            getAudioProfile: function () {
-                return audioProfile_;
+            getAudioProfileId: function () {
+                return audioProfileId_;
             },
 
-            refreshAudioProfile: function () {
-                audioProfile_ = createAudioProfile();
-                return audioProfile_;
+            refreshAudioProfileId: function () {
+                audioProfileId_ = createAudioProfileId();
+                return audioProfileId_;
             },
 
             getAudioContext: function () {
@@ -95,7 +95,7 @@
                     voysisSession_ = new VoysisSession({
                         refreshToken: refreshToken_,
                         host: host_,
-                        audioProfile: audioProfile_,
+                        audioProfileId: audioProfileId_,
                         debugEnabled: true,
                         streamingAudioDeadline: 10000
                     });
