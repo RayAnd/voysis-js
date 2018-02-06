@@ -37,6 +37,7 @@
         var voysisSession_;
         var statusMessageElement_;
         var statusBarElement_;
+        var previousQueryContext_;
         var sessionChanged_ = false;
 
         function createUuid() {
@@ -80,6 +81,14 @@
                 sessionChanged_ = true;
             },
 
+            getPreviousQueryContext: function() {
+                return previousQueryContext_;
+            },
+
+            setPreviousQueryContext: function(context) {
+                previousQueryContext_ = context;
+            },
+
             getRefreshToken: function () {
                 return refreshToken_;
             },
@@ -92,6 +101,7 @@
 
             getVoysisSession: function () {
                 if (!voysisSession_ || sessionChanged_) {
+                    previousQueryContext_ = null;
                     voysisSession_ = new VoysisSession({
                         refreshToken: refreshToken_,
                         host: host_,
