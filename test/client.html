@@ -340,15 +340,25 @@
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
               voysisSession.createConversation('en-us', audioContext).then(function (conversation) {
-                  var context = {"prevQuery": window.sessionStorage.getItem("prevQuery")};
-                  return voysisSession.createAudioQuery(conversation, context);
+                  var previousContextJson = window.sessionStorage.getItem("previousContext");
+                  var previousContext = null;
+                  if(previousContextJson) {
+                      try {
+                          previousContext = JSON.parse(previousContextJson);
+                      }catch(err) {
+                          console.error("Unable to parse the previously saved context");
+                      }
+                  }
+                  return voysisSession.createAudioQuery(conversation, previousContext);
               }).then(function (audioQuery) {
                   lastQuery = audioQuery;
                   voysisClient.warn('Listening...');
                   console.log(lastQuery);
                   return voysisSession.streamAudio();
               }).then(function (queryResults) {
-                  window.sessionStorage.setItem("prevQuery", queryResults.textQuery.text);
+                  if(queryResults.context) {
+                      window.sessionStorage.setItem("previousContext", JSON.stringify(queryResults.context));
+                  }
                   mic_button.classList.remove('is-active');
                   voysisClient.finished('Query complete.');
                   $('#queryResult').html(JSON.stringify(queryResults, null, 4));
