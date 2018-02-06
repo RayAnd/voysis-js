@@ -84,7 +84,7 @@
 
     VoysisSession.prototype.createConversation = function (language, audioContext) {
         checkAudioContext(audioContext);
-        return sendAudioRequest('POST', '/conversations', null, {'Accept-Language': language});
+        return sendAudioRequest('POST', '/conversations', {'lang': language});
     };
 
     VoysisSession.prototype.getConversation = function (conversationId) {
