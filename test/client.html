@@ -347,7 +347,7 @@
                   console.log(lastQuery);
                   return voysisSession.streamAudio();
               }).then(function (queryResults) {
-                  if(queryResults.context) {
+                  if (queryResults.context) {
                       voysisClient.setPreviousQueryContext(queryResults.context);
                   }
                   mic_button.classList.remove('is-active');
