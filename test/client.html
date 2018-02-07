@@ -336,7 +336,7 @@
           var host = voysisClient.getHost();
           console.log('Sending query to: ', host);
           if (host && host != '') {
-              voysisClient.info('Listening...');
+              voysisClient.warn('Listening...');
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
               voysisSession.sendAudioQuery('en-us', voysisClient.getPreviousQueryContext(), audioContext).then(function (results) {
