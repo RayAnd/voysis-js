@@ -340,6 +340,7 @@
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
               voysisSession.sendAudioQuery('en-us', voysisClient.getPreviousQueryContext(), audioContext).then(function (results) {
+                  lastQuery = results[0];
                   var queryResults = results[1];
                   if (queryResults.context) {
                       voysisClient.setPreviousQueryContext(queryResults.context);
