@@ -51,7 +51,7 @@
         args_ = args || {};
         checkProperty(args_, 'host');
         checkProperty(args_, 'audioProfileId');
-        checkProperty(args_, 'refreshToken');
+        args_.refreshToken = args_.refreshToken || null;
         args_.debugEnabled = args_.debugEnabled || false;
         args_.streamingAudioDeadline = args_.streamingAudioDeadline || 20000;
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
@@ -284,7 +284,7 @@
     }
 
     function checkSessionToken() {
-        if (sessionApiToken_.expiresAtEpoch < (Date.now() + args_.tokenExpiryMargin)) {
+        if (args_.refreshToken && sessionApiToken_.expiresAtEpoch < (Date.now() + args_.tokenExpiryMargin)) {
             debug("Session token has expired: ", sessionApiToken_.expiresAtEpoch, ' - ', Date.now(), " - Expiry margin is ", args_.tokenExpiryMargin);
             return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken);
         } else {
@@ -295,7 +295,7 @@
         }
     }
 
-    function sendRequest(method, uri, entity, additionalHeaders, refreshToken) {
+    function sendRequest(method, uri, entity, additionalHeaders, authToken) {
         return new Promise(function (resolve, reject) {
             var sendCallback = function () {
                 currentRequestId_++;
@@ -304,10 +304,11 @@
                     'requestId': currentRequestId_.toString(),
                     'method': method,
                     'restUri': uri,
-                    'headers': {
-                        'Authorization': 'Bearer ' + refreshToken
-                    }
+                    'headers': {}
                 };
+                if(authToken) {
+                    msg.headers.Authorization = 'Bearer ' + authToken
+                }
                 if (entity != null) {
                     msg.entity = entity;
                 }
