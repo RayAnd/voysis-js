@@ -2838,7 +2838,7 @@ a.box:active {
 .modal-card-title {
   color: #363636;
   flex-grow: 1;
-  flex-shrink: 0;
+  flex-shrink: 1;
   font-size: 1.5rem;
   line-height: 1; }
 
