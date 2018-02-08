@@ -95,7 +95,7 @@
           <div class="notification is-success" id="statusBar">
             <div class="columns">
               <div class="column is-10-desktop" id="statusMessage">
-                <p>Press the mic and start talking.</p>
+                <p>Tap mic to talk.</p>
               </div>
               <div class="column is-2-desktop">
                 <div class="buttons is-right">
@@ -290,7 +290,7 @@
       function resetState() {
           resetFeedback();
           $('#queryResult').html('The response will be displayed here.');
-          voysisClient.finished('Press the mic and start talking.');
+          voysisClient.finished('Tap mic to talk.');
       }
 
       function setHelpMessage(serviceType) {
@@ -359,7 +359,7 @@
               });
           } else {
               mic_button.classList.remove('is-active');
-              voysisClient.error('You must enter your AI hostname.');
+              voysisClient.error('Enter AI hostname.');
           }
       }
 
@@ -411,7 +411,7 @@
               });
               voysisClient.info('Sending feedback...');
           } else {
-              voysisClient.error("You must perform a query before sending feedback");
+              voysisClient.error("Perform query to send feedback");
               resetFeedback();
           }
           $('#feedbackModal').removeClass('is-active');

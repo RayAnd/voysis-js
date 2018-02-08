@@ -2838,7 +2838,7 @@ a.box:active {
 .modal-card-title {
   color: #363636;
   flex-grow: 1;
-  flex-shrink: 0;
+  flex-shrink: 1;
   font-size: 1.5rem;
   line-height: 1; }
 
@@ -4336,15 +4336,14 @@ pre {
     padding-right: 0.5rem;
     width: 100%; }
     .control-container-fixed .notification-container .notification {
-      width: 100%;
-      max-height: 64px; }
+      width: 100%; }
 
 .is-mic-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 64px;
-  height: 64px;
+  height: 100%;
   border: none;
   border-radius: 0.25rem;
   background: #5D6674;
