@@ -241,6 +241,9 @@
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
   <script>
+      if (window.location.protocol === 'http:') {
+          window.location = 'https:' + window.location.href.substring(window.location.protocol.length);
+      }
       var help;
       var lastQuery;
       var currentRating = 5;
