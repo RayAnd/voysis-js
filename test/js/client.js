@@ -38,6 +38,7 @@
         var statusMessageElement_;
         var statusBarElement_;
         var previousQueryContext_;
+        var queryConversationId_;
         var sessionChanged_ = false;
 
         function createUuid() {
@@ -81,12 +82,20 @@
                 sessionChanged_ = true;
             },
 
-            getPreviousQueryContext: function() {
+            getPreviousQueryContext: function () {
                 return previousQueryContext_;
             },
 
-            setPreviousQueryContext: function(context) {
+            setPreviousQueryContext: function (context) {
                 previousQueryContext_ = context;
+            },
+
+            getQueryConversationId: function () {
+                return queryConversationId_;
+            },
+
+            setQueryConversationId: function (conversationId) {
+                queryConversationId_ = conversationId;
             },
 
             getRefreshToken: function () {
