@@ -71,32 +71,18 @@
         stopStreaming_ = true;
     };
 
-    VoysisSession.prototype.sendAudioQuery = function (language, context, audioContext) {
+    VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
         checkAudioContext(audioContext);
         var self = this;
         return checkSessionToken().then(function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
-            var queriesUrl = '/conversations/*/queries';
-            var headers = {'Accept-Language': language};
-            return Promise.all([sendCreateAudioQueryRequest(queriesUrl, context, headers, true), self.streamAudio()]);
+            return Promise.all([sendCreateAudioQueryRequest(locale, context, conversationId, true), self.streamAudio()]);
         });
     };
 
-    VoysisSession.prototype.createConversation = function (language, audioContext) {
+    VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
         checkAudioContext(audioContext);
-        return sendAudioRequest('POST', '/conversations', {'lang': language});
-    };
-
-    VoysisSession.prototype.getConversation = function (conversationId) {
-        return sendAudioRequest('GET', '/conversations/' + conversationId);
-    };
-
-    VoysisSession.prototype.listConversations = function () {
-        return sendAudioRequest('GET', '/conversations');
-    };
-
-    VoysisSession.prototype.createAudioQuery = function (conversation, context) {
-        return sendCreateAudioQueryRequest(conversation._links.queries.href, context, null, false);
+        return sendCreateAudioQueryRequest(locale, context, conversationId, false);
     };
 
     VoysisSession.prototype.streamAudio = function () {
@@ -174,14 +160,19 @@
         });
     };
 
-    function sendCreateAudioQueryRequest(queriesUrl, context, additionalHeaders, skipCheckSessionToken) {
-        return sendAudioRequest('POST', queriesUrl, {
+    function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken) {
+        var queryEntity = {
+            'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
                 'mimeType': 'audio/wav'
             },
             'context': context || {}
-        }, additionalHeaders, skipCheckSessionToken);
+        };
+        if (conversationId) {
+            queryEntity.conversationId = conversationId;
+        }
+        return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
     }
 
     function checkAudioContext(audioContext) {
@@ -261,7 +252,7 @@
         callFunction(callback, callbackArg);
     }
 
-    function sendAudioRequest(method, uri, entity, additionalHeaders, skipCheckSessionToken) {
+    function sendAudioRequest(method, uri, entity, skipCheckSessionToken) {
         var sendRequestFunction = function (sessionApiToken) {
             saveSessionApiToken(sessionApiToken);
             var audioHeaders = {
@@ -269,7 +260,6 @@
                 'X-Voysis-Ignore-Vad': false,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
-            audioHeaders = Object.assign(audioHeaders, additionalHeaders);
             return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token)
         };
         if (skipCheckSessionToken) {
@@ -306,7 +296,7 @@
                     'restUri': uri,
                     'headers': {}
                 };
-                if(authToken) {
+                if (authToken) {
                     msg.headers.Authorization = 'Bearer ' + authToken
                 }
                 if (entity != null) {
