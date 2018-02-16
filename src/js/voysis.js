@@ -67,17 +67,22 @@
 
     VoysisSession.version = '${LIBRARY_VERSION}';
 
+    VoysisSession.isStreamingAudioSupported = function () {
+        // Look for a getUserMedia method for the current platform
+        if (AudioContext &&
+            (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
+            (navigator.mediaDevices && navigator.mediaDevices.getUserMedia))) {
+            return true;
+        }
+        return false;
+    };
+
     VoysisSession.prototype.finishStreamingAudio = function () {
         stopStreaming_ = true;
     };
 
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
-        checkAudioContext(audioContext);
-        var self = this;
-        return checkSessionToken().then(function (sessionApiToken) {
-            saveSessionApiToken(sessionApiToken);
-            return Promise.all([sendCreateAudioQueryRequest(locale, context, conversationId, true), self.streamAudio()]);
-        });
+        return this.createAudioQuery(locale, context, conversationId, audioContext).then(this.streamAudio);
     };
 
     VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
@@ -153,13 +158,21 @@
                     debug("Using navigator.mozGetUserMedia");
                 } else {
                     debug("No getUserMedia available");
-                    reject(new Error("Browser does not support streaming audio"));
+                    reject(createError("Browser does not support streaming audio", "NotSupportedError"));
                 }
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
                 getUserMedia({audio: true}, onSuccess, reject);
             }
         });
     };
+
+    function createError(message, name) {
+        var error = new Error(message);
+        if (name) {
+            error.name = name;
+        }
+        return error;
+    }
 
     function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken) {
         var queryEntity = {
@@ -180,7 +193,11 @@
         audioContext_ = audioContext || audioContext_;
         if (audioContext_ == null) {
             debug('Creating new AudioContext');
-            audioContext_ = new AudioContext();
+            if (AudioContext) {
+                audioContext_ = new AudioContext();
+            } else {
+                throw createError("Browser does not support streaming audio", "NotSupportedError");
+            }
         }
         if (audioContext_.state === 'suspended') {
             audioContext_.resume();
