@@ -203,7 +203,7 @@
   </div>
 
   <!-- Modal - Submit Url -->
-      <div id="gettingStartedModal" class="modal">
+  <div id="gettingStartedModal" class="modal">
     <div class="modal-background"></div>
     <div class="modal-card">
       <header class="modal-card-head">
@@ -235,6 +235,23 @@
     </div>
   </div>
 
+  <!-- Modal - Submit Url -->
+  <div id="browserNotSupportedModal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <h2 class="modal-card-title">Browser not supported</h2>
+      </header>
+      <section class="modal-card-body">
+        <p>
+          The browser you are using does not support streaming audio.  Please see
+          <a href="https://developers.voysis.com/v1.0/docs/supported-browsers">this link</a>
+          for a list of supported browsers and operating systems
+        </p>
+      </section>
+    </div>
+  </div>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="https://cdn.voysis.io/js/voysis.js"></script>
   <script src="js/modal.js"></script>
@@ -247,18 +264,27 @@
       var help;
       var lastQuery;
       var currentRating = 5;
-      var sessionApiToken_ = null;
+      var sessionApiToken_ = {
+          token: null,
+          expiresAt: 0,
+          expiresAtEpoch: 0
+      };
       $(document).ready(function () {
           voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
-          var hostname = getUrlParameter('hostname');
-          if (updateHostnameField(hostname) == null) {
-              hostname = voysisClient.getHost();
+          if (!VoysisSession.isStreamingAudioSupported()) {
+              $('#browserNotSupportedModal').addClass('is-active');
+              voysisClient.error('Browser not supported');
+          } else {
+              var hostname = getUrlParameter('hostname');
               if (updateHostnameField(hostname) == null) {
-                  $('#gettingStartedModal').addClass('is-active');
+                  hostname = voysisClient.getHost();
+                  if (updateHostnameField(hostname) == null) {
+                      $('#gettingStartedModal').addClass('is-active');
+                  }
               }
+              var serviceType = getUrlParameter('servicetype');
+              setHelpMessage(serviceType);
           }
-          var serviceType = getUrlParameter('servicetype');
-          setHelpMessage(serviceType);
       });
 
       function updateHostnameField(hostname) {
@@ -332,12 +358,14 @@
           var host = voysisClient.getHost();
           console.log('Sending query to: ', host);
           if (host && host != '') {
-              voysisClient.warn('Listening...');
+              voysisClient.info('Starting...');
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
-              voysisSession.sendAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (results) {
-                  lastQuery = results[0];
-                  var queryResults = results[1];
+              voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (queryResults) {
+                  voysisClient.warn('Listening...');
+                  return voysisSession.streamAudio();
+              }).then(function (queryResults) {
+                  lastQuery = queryResults;
                   console.log("Query Results: ", queryResults);
                   if (queryResults.context) {
                       voysisClient.setPreviousQueryContext(queryResults.context);
@@ -382,12 +410,15 @@
                       'description': $('#feedbackDescription').val()
                   }));
                   try {
+                      var headers = {
+                          'Accept': 'application/vnd.voysisquery.v1+json',
+                          'Content-Type': 'application/json'
+                      };
+                      if(sessionApiToken_.token) {
+                          headers['Authorization'] = 'Bearer ' + sessionApiToken_.token;
+                      }
                       $.ajax({
-                          headers: {
-                              'Authorization': 'Bearer ' + sessionApiToken_.token,
-                              'Accept': 'application/vnd.voysisquery.v1+json',
-                              'Content-Type': 'application/json'
-                          },
+                          headers: headers,
                           type: 'POST',
                           url: feedbackUrl,
                           data: JSON.stringify({
@@ -418,7 +449,8 @@
       }
 
       function checkSessionToken() {
-          if (sessionApiToken_ == null || sessionApiToken_.expiresAtEpoch < (Date.now() + 30000)) {
+          console.log('Refresh token: ', voysisClient.getRefreshToken());
+          if (voysisClient.getRefreshToken() && (sessionApiToken_ == null || sessionApiToken_.expiresAtEpoch < (Date.now() + 30000))) {
               return new Promise(function (resolve, reject) {
                   var tokenUrl = 'https://' + voysisClient.getHost() + '/tokens';
                   console.log('Sending token request to: ', tokenUrl);

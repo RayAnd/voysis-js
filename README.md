@@ -24,10 +24,10 @@ The first step to using the lib is to create a VoysisSession.
 From here, the simplest usage is to call sendAudioQuery, which
 takes the language which will be used as a parameter.
 
-    voysisSession.sendAudioQuery('en-us').then(function (queryResult) {
-        console.log('You said: ' + queryResult['textQuery']['text']);
+    voysisSession.sendAudioQuery('en-US').then(function (queryResult) {
+        console.log('You said: ' + queryResult.textQuery.text);
     }).catch(function (error) {
-        console.log("ERROR: " + JSON.stringify(error));
+        console.log("ERROR: ", error.message);
     });
 
 The object passed to the callback will be the result of the query.

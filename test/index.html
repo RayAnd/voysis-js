@@ -87,8 +87,7 @@
             }
             function startStreaming() {
                 console.log('Using JS library version: ', VoysisSession.version);
-                voysisClient.getVoysisSession().sendAudioQuery('en-US', voysisClient.getPreviousQueryContext()).then(function (result) {
-                    var queryResult = result[1];
+                voysisClient.getVoysisSession().sendAudioQuery('en-US', voysisClient.getPreviousQueryContext()).then(function (queryResult) {
                     if (queryResult.context) {
                         voysisClient.setPreviousQueryContext(queryResult.context);
                     }
