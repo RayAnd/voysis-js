@@ -53,7 +53,9 @@
         </div>
         <script>
             if (console.log) {
+                originalConsoleLog = console.log;
                 console.log = function () {
+                    originalConsoleLog.apply(console, arguments);
                     var logList = document.getElementById('logMessages');
                     var newLogItem = document.createElement('li');
                     logList.appendChild(newLogItem);
@@ -91,12 +93,12 @@
                         voysisClient.setPreviousQueryContext(queryResult.context);
                     }
                     if (queryResult.textQuery && queryResult.textQuery.text) {
-                        console.log('You said: ' + queryResult.textQuery.text);
+                        console.log('You said: ', queryResult.textQuery.text);
                     } else {
                         console.log("No words were understood");
                     }
                 }).catch(function (error) {
-                    console.log("QUERY ERROR: ", error);
+                    console.error("QUERY ERROR: ", error.message);
                 });
             }
             function updateHost(host) {
@@ -107,6 +109,7 @@
             }
             document.getElementById('hostname').value = voysisClient.getHost();
             document.getElementById('refreshToken').value = voysisClient.getRefreshToken();
+            console.log('Browser User-Agent: ', window.navigator.userAgent);
         </script>
     </body>
 </html>

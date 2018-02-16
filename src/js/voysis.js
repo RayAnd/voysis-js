@@ -121,13 +121,13 @@
                             }
                         } else {
                             stopStreaming();
-                            reject('Connection to server closed before query response sent');
+                            reject(new Error('Connection to server closed before query response sent'));
                         }
                     };
                     processor.onerror = reject;
                     var timeoutId = setTimeout(function () {
                         stopStreaming();
-                        reject('No response received within the timeout');
+                        reject(new Error('No response received within the timeout'));
                     }, args_.streamingAudioDeadline);
                     addCallbacks(VAD_STOP_CALLBACK_KEY, function () {
                         clearTimeout(timeoutId);
@@ -153,6 +153,7 @@
                     debug("Using navigator.mozGetUserMedia");
                 } else {
                     debug("No getUserMedia available");
+                    reject(new Error("Browser does not support streaming audio"));
                 }
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
                 getUserMedia({audio: true}, onSuccess, reject);
@@ -207,12 +208,12 @@
                 };
                 webSocket_.onerror = function (event) {
                     debug('WebSocket onerror: ', event);
-                    reject('There was an error communicating with the WebSocket');
+                    reject(new Error('There was an error communicating with the WebSocket'));
                 };
                 webSocket_.onclose = function (event) {
                     debug('WebSocket onclose');
                     if (event.code == 1006) {
-                        reject('The WebSocket closed abnormally: ' + event.reason);
+                        reject(new Error('The WebSocket closed abnormally: ' + event.reason));
                     }
                 };
                 webSocket_.onmessage = handleWebSocketMessage;
@@ -242,11 +243,11 @@
                     break;
                 case(INTERNAL_SERVER_ERROR_NOTIFICATION):
                     callback = getCallback(STREAM_AUDIO_CALLBACK_KEY, true);
-                    callbackArg = 'A Server Error Occurred';
+                    callbackArg = new Error('A Server Error Occurred');
                     break;
                 default:
                     callback = getCallback(STREAM_AUDIO_CALLBACK_KEY, true);
-                    callbackArg = 'Unknown Notification: ' + msg.notificationType;
+                    callbackArg = new Error('Unknown Notification: ' + msg.notificationType);
             }
         }
         callFunction(callback, callbackArg);

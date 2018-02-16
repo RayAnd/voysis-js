@@ -248,7 +248,6 @@
       var lastQuery;
       var currentRating = 5;
       var sessionApiToken_ = null;
-      const DEFAULT_REFRESH_TOKEN = 'f9a1ecaad566152168c49352ba2e914c01d2fbaa669c03ad94842e1f653ab550';
       $(document).ready(function () {
           voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
           var hostname = getUrlParameter('hostname');
@@ -257,9 +256,6 @@
               if (updateHostnameField(hostname) == null) {
                   $('#gettingStartedModal').addClass('is-active');
               }
-          }
-          if (!voysisClient.getRefreshToken()) {
-              updateRefreshTokenField(DEFAULT_REFRESH_TOKEN);
           }
           var serviceType = getUrlParameter('servicetype');
           setHelpMessage(serviceType);
@@ -276,9 +272,6 @@
       }
 
       function updateRefreshTokenField(refreshToken) {
-          if (!refreshToken) {
-              refreshToken = DEFAULT_REFRESH_TOKEN;
-          }
           voysisClient.setRefreshToken(refreshToken);
           $('.refreshToken').val(refreshToken);
           resetState();
@@ -360,9 +353,9 @@
                       help.removeClass('is-active');
                   }
               }).catch(function (error) {
-                  console.log(error);
+                  console.error(error);
                   mic_button.classList.remove('is-active');
-                  voysisClient.error('Query error.');
+                  voysisClient.error('Query error: ' + error.message);
               });
           } else {
               mic_button.classList.remove('is-active');
@@ -414,7 +407,7 @@
                       voysisClient.error("Feedback failed.");
                   }
               }).catch(function (error) {
-                  voysisClient.error(error);
+                  voysisClient.error(error.message);
               });
               voysisClient.info('Sending feedback...');
           } else {
