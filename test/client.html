@@ -50,7 +50,7 @@
             <pre><code id="queryResult">The response will be displayed here.</code></pre>
           </div>
           <div id="musicHelp">
-            <h2 class="title has-text-centered">What can you say?<h2>
+            <h2 class="title has-text-centered">What can you say?</h2>
             <p class="has-text-centered">
               “Play some music”<br><br>
               “Play Michael Jackson”<br><br>
@@ -61,7 +61,7 @@
             </p>
           </div>
           <div id="commerceHelp">
-            <h2 class="title has-text-centered">Here are some example things you can ask:<h2>
+            <h2 class="title has-text-centered">Here are some example things you can ask:</h2>
             <p class="has-text-centered">
               “Product Search: "Show me some ..." "I am looking for ..."”<br><br>
               “Sorting: "I want the cheapest ...", "What are the most popular ... "”<br><br>
@@ -264,6 +264,7 @@
       var help;
       var lastQuery;
       var currentRating = 5;
+      var streaming = false;
       var sessionApiToken_ = {
           token: null,
           expiresAt: 0,
@@ -361,9 +362,13 @@
               voysisClient.info('Starting...');
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
-              voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (queryResults) {
+              voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
                   voysisClient.warn('Listening...');
-                  return voysisSession.streamAudio();
+                  streaming = true;
+                  return voysisSession.streamAudio(audioQueryResponse, function(notificationType) {
+                      reportStopStreaming();
+                      console.log("Vad Notification: ", notificationType);
+                  });
               }).then(function (queryResults) {
                   lastQuery = queryResults;
                   console.log("Query Results: ", queryResults);
@@ -392,9 +397,16 @@
       }
 
       function stopQuery() {
-          voysisClient.info('Retrieving response...');
+          reportStopStreaming();
           var voysisSession = voysisClient.getVoysisSession();
           voysisSession.finishStreamingAudio();
+      }
+
+      function reportStopStreaming() {
+          if (streaming) {
+              streaming = false;
+              voysisClient.info('Retrieving response...');
+          }
       }
 
       function sendFeedback() {
