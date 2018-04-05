@@ -90,7 +90,7 @@
         return sendCreateAudioQueryRequest(locale, context, conversationId, false);
     };
 
-    VoysisSession.prototype.streamAudio = function () {
+    VoysisSession.prototype.streamAudio = function (audioQueryResponse, vadStopCallback) {
         stopStreaming_ = false;
         return new Promise(function (resolve, reject) {
             var onSuccess = function (stream) {
@@ -134,7 +134,8 @@
                         stopStreaming();
                         reject(new Error('No response received within the timeout'));
                     }, args_.streamingAudioDeadline);
-                    addCallbacks(VAD_STOP_CALLBACK_KEY, function () {
+                    addCallbacks(VAD_STOP_CALLBACK_KEY, function (notificationType) {
+                        callFunction(vadStopCallback, notificationType);
                         clearTimeout(timeoutId);
                         stopStreaming();
                     });
@@ -254,6 +255,7 @@
             switch (msg.notificationType) {
                 case VAD_STOP_NOTIFICATION:
                     callback = getCallback(VAD_STOP_CALLBACK_KEY);
+                    callbackArg = msg.notificationType;
                     break;
                 case(QUERY_COMPLETE_NOTIFICATION):
                     callback = getCallback(STREAM_AUDIO_CALLBACK_KEY);
