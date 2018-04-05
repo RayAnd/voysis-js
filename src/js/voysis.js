@@ -45,6 +45,8 @@
     var callbacks_;
     var currentRequestId_;
     var stopStreaming_;
+    var queryDurations_;
+    var queryStartTime_;
     var sessionApiToken_;
 
     function VoysisSession(args) {
@@ -57,6 +59,8 @@
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
         webSocket_ = null;
         callbacks_ = new Map();
+        queryDurations_ = new Map();
+        queryStartTime_ = 0;
         currentRequestId_ = 0;
         stopStreaming_ = false;
         sessionApiToken_ = {
@@ -79,6 +83,11 @@
 
     VoysisSession.prototype.finishStreamingAudio = function () {
         stopStreaming_ = true;
+        recordDuration('userStop');
+    };
+
+    VoysisSession.prototype.getQueryDurations = function () {
+        return queryDurations_;
     };
 
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
@@ -87,13 +96,16 @@
 
     VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
         checkAudioContext(audioContext);
+        queryDurations_.clear();
         return sendCreateAudioQueryRequest(locale, context, conversationId, false);
     };
 
     VoysisSession.prototype.streamAudio = function (audioQueryResponse, vadStopCallback) {
         stopStreaming_ = false;
+        queryDurations_.clear();
         return new Promise(function (resolve, reject) {
             var onSuccess = function (stream) {
+                queryStartTime_ = Date.now();
                 try {
                     debug('Recording at ', audioContext_.sampleRate, "Hz");
                     var source = audioContext_.createMediaStreamSource(stream);
@@ -166,6 +178,13 @@
             }
         });
     };
+
+    function recordDuration(name) {
+        if (queryStartTime_) {
+            var duration = Date.now() - queryStartTime_;
+            queryDurations_.set(name, duration);
+        }
+    }
 
     function createError(message, name) {
         var error = new Error(message);
@@ -254,10 +273,12 @@
         } else if (msg.type == 'notification') {
             switch (msg.notificationType) {
                 case VAD_STOP_NOTIFICATION:
+                    recordDuration('vad');
                     callback = getCallback(VAD_STOP_CALLBACK_KEY);
                     callbackArg = msg.notificationType;
                     break;
                 case(QUERY_COMPLETE_NOTIFICATION):
+                    recordDuration('complete');
                     callback = getCallback(STREAM_AUDIO_CALLBACK_KEY);
                     break;
                 case(INTERNAL_SERVER_ERROR_NOTIFICATION):
