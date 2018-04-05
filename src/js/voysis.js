@@ -135,9 +135,9 @@
                         reject(new Error('No response received within the timeout'));
                     }, args_.streamingAudioDeadline);
                     addCallbacks(VAD_STOP_CALLBACK_KEY, function (notificationType) {
-                        callFunction(vadStopCallback, notificationType);
                         clearTimeout(timeoutId);
                         stopStreaming();
+                        callFunction(vadStopCallback, notificationType);
                     });
                 } catch (err) {
                     reject(err);
