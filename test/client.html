@@ -416,6 +416,7 @@
               var feedbackDescription = $('#feedbackDescription').val();
               sendFeedback(lastQuery, currentRating, feedbackDescription, null).then(function (message) {
                   voysisClient.finished(message);
+                  resetFeedback();
               }).catch(function (error) {
                   voysisClient.error(error.message);
               });
