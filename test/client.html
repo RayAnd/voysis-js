@@ -386,7 +386,7 @@
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
                   }
-                  sendFeedback(queryResults, null, null, voysisSession.getQueryDurations());
+                  voysisSession.sendQueryDurations(queryResults, voysisSession.getQueryDurations());
               }).catch(function (error) {
                   console.error(error);
                   mic_button.classList.remove('is-active');
@@ -414,8 +414,8 @@
       function sendRatingFeedback() {
           if (lastQuery) {
               var feedbackDescription = $('#feedbackDescription').val();
-              sendFeedback(lastQuery, currentRating, feedbackDescription, null).then(function (message) {
-                  voysisClient.finished(message);
+              voysisClient.getVoysisSession().rateQuery(lastQuery, currentRating, feedbackDescription).then(function(updatedQuery) {
+                  voysisClient.finished('Feedback submitted');
                   resetFeedback();
               }).catch(function (error) {
                   voysisClient.error(error.message);
@@ -426,57 +426,6 @@
               resetFeedback();
           }
           $('#feedbackModal').removeClass('is-active');
-      }
-
-      function sendFeedback(queryForFeedback, rating, description, durations) {
-          return new Promise(function (resolve, reject) {
-              checkSessionToken().then(function (sessionApiToken) {
-                  sessionApiToken_ = sessionApiToken;
-                  sessionApiToken_.expiresAtEpoch = Date.parse(sessionApiToken.expiresAt);
-                  var host = voysisClient.getHost();
-                  var feedbackUrl = 'https://' + host + queryForFeedback._links.self.href + '/feedback';
-                  console.log('Sending feedback to: ', feedbackUrl);
-                  var feedbackData = {};
-                  if (rating) {
-                      feedbackData['rating'] = rating;
-                  }
-                  if (description) {
-                      feedbackData['description'] = description;
-                  }
-                  if (durations) {
-                      // JSON doesn't support Map, so we need to convert it to an Object
-                      feedbackData['durations'] = mapToObject(durations);
-                  }
-                  var jsonFeedbackData = JSON.stringify(feedbackData);
-                  console.log("Sending feedback: ", jsonFeedbackData);
-                  try {
-                      var headers = {
-                          'Accept': 'application/vnd.voysisquery.v1+json',
-                          'Content-Type': 'application/json'
-                      };
-                      if (sessionApiToken_.token) {
-                          headers['Authorization'] = 'Bearer ' + sessionApiToken_.token;
-                      }
-                      $.ajax({
-                          headers: headers,
-                          type: 'PATCH',
-                          url: feedbackUrl,
-                          data: jsonFeedbackData,
-                          success: function (result) {
-                              console.log(result);
-                              resolve('Feedback submitted');
-                          },
-                          error: function () {
-                              reject(new Error("Feedback failed."));
-                          }
-                      });
-                  } catch (err) {
-                      reject(new Error("Feedback failed."));
-                  }
-              }).catch(function (error) {
-                  reject(error);
-              });
-          });
       }
 
       function mapToObject(map) {

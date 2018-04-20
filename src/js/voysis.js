@@ -179,6 +179,42 @@
         });
     };
 
+    VoysisSession.prototype.rateQuery = function(queryToRate, rating, description) {
+        return sendFeedback(queryToRate, rating, description);
+    };
+
+    VoysisSession.prototype.sendQueryDurations = function(query, durations) {
+        return sendFeedback(query, null, null, durations);
+    };
+
+    function sendFeedback(queryForFeedback, rating, description, durations) {
+        var sendFeedbackFunction = function(sessionApiToken) {
+            saveSessionApiToken(sessionApiToken);
+            var feedbackUri = queryForFeedback._links.self.href + '/feedback';
+            debug('Sending feedback to: ', feedbackUri);
+            var feedbackData = {};
+            if (rating) {
+                feedbackData['rating'] = rating;
+            }
+            if (description) {
+                feedbackData['description'] = description;
+            }
+            if (durations) {
+                // JSON doesn't support Map, so we need to convert it to an Object
+                feedbackData['durations'] = mapToObject(durations);
+            }
+            var jsonFeedbackData = JSON.stringify(feedbackData);
+            debug("Sending feedback: ", jsonFeedbackData);
+            var headers = {
+                'Accept': 'application/vnd.voysisquery.v1+json',
+                'Content-Type': 'application/json'
+            };
+
+            sendRequest('PATCH', feedbackUri, feedbackData, headers, sessionApiToken_.token);
+        };
+        return checkSessionToken().then(sendFeedbackFunction);
+    }
+
     function recordDuration(name) {
         if (queryStartTime_) {
             var duration = Date.now() - queryStartTime_;
