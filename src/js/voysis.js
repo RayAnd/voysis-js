@@ -46,6 +46,7 @@
     var currentRequestId_;
     var stopStreaming_;
     var queryDurations_;
+    var autoSendDurations_;
     var queryStartTime_;
     var sessionApiToken_;
 
@@ -60,6 +61,7 @@
         webSocket_ = null;
         callbacks_ = new Map();
         queryDurations_ = new Map();
+        autoSendDurations_ = args_.autoSendDurations || false;
         queryStartTime_ = 0;
         currentRequestId_ = 0;
         stopStreaming_ = false;
@@ -86,10 +88,6 @@
         recordDuration('userStop');
     };
 
-    VoysisSession.prototype.getQueryDurations = function () {
-        return queryDurations_;
-    };
-
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
         return this.createAudioQuery(locale, context, conversationId, audioContext).then(this.streamAudio);
     };
@@ -103,7 +101,7 @@
     VoysisSession.prototype.streamAudio = function (audioQueryResponse, vadStopCallback) {
         stopStreaming_ = false;
         queryDurations_.clear();
-        return new Promise(function (resolve, reject) {
+        var promise = new Promise(function (resolve, reject) {
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
                 try {
@@ -177,14 +175,20 @@
                 getUserMedia({audio: true}, onSuccess, reject);
             }
         });
+        if (autoSendDurations_) {
+            promise = promise.then(sendQueryDurations);
+        }
+        return promise;
     };
 
     VoysisSession.prototype.rateQuery = function(queryToRate, rating, description) {
         return sendFeedback(queryToRate, rating, description);
     };
 
-    VoysisSession.prototype.sendQueryDurations = function(query, durations) {
-        return sendFeedback(query, null, null, durations);
+    function sendQueryDurations(query) {
+        debug('Durations', queryDurations_);
+        sendFeedback(query, null, null, queryDurations_);
+        return query;
     };
 
     function sendFeedback(queryForFeedback, rating, description, durations) {
@@ -213,6 +217,14 @@
             sendRequest('PATCH', feedbackUri, feedbackData, headers, sessionApiToken_.token);
         };
         return checkSessionToken().then(sendFeedbackFunction);
+    }
+
+    function mapToObject(map) {
+        var object = {};
+        map.forEach(function (value, key) {
+            object[key] = value;
+        });
+        return object;
     }
 
     function recordDuration(name) {

@@ -253,7 +253,8 @@
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  <script src="https://cdn.voysis.io/js/voysis.js"></script>
+  <!--script src="https://cdn.voysis.io/js/voysis.js"></script-->
+  <script src="https://voice.adenki.com/js-sdk/voysis.js"></script>
   <script src="js/modal.js"></script>
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
@@ -372,7 +373,6 @@
               }).then(function (queryResults) {
                   lastQuery = queryResults;
                   console.log("Query Results: ", queryResults);
-                  console.log("Query Durations: ", voysisSession.getQueryDurations());
                   if (queryResults.context) {
                       voysisClient.setPreviousQueryContext(queryResults.context);
                   }
@@ -386,7 +386,6 @@
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
                   }
-                  voysisSession.sendQueryDurations(queryResults, voysisSession.getQueryDurations());
               }).catch(function (error) {
                   console.error(error);
                   mic_button.classList.remove('is-active');
@@ -426,14 +425,6 @@
               resetFeedback();
           }
           $('#feedbackModal').removeClass('is-active');
-      }
-
-      function mapToObject(map) {
-          var object = {};
-          map.forEach(function (value, key) {
-              object[key] = value;
-          });
-          return object;
       }
 
       function checkSessionToken() {

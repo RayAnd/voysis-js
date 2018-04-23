@@ -116,7 +116,8 @@
                         host: host_,
                         audioProfileId: audioProfileId_,
                         debugEnabled: true,
-                        streamingAudioDeadline: 10000
+                        streamingAudioDeadline: 10000,
+                        autoSendDurations: true
                     });
                     sessionChanged_ = false;
                 }
