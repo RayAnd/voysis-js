@@ -248,6 +248,7 @@
       var lastQuery;
       var currentRating = 5;
       var streaming = false;
+      var serviceType;
       var sessionApiToken_ = {
           token: null,
           expiresAt: 0,
@@ -260,21 +261,21 @@
               voysisClient.error('Browser not supported');
           } else {
               var hostname = getUrlParameter('hostname');
+              var lastHostname = voysisClient.getHost();
               var popupLogin = true;
               $('#gettingStartedEmail').val(voysisClient.getEmail());
+              updateHostnameField(hostname || lastHostname);
               if (!hostname) {
-                  window.location.replace('support.html');
-                  return;
+                  $('#gettingStartedModal').find('[data-mode=full]').show();
               } else {
-                  if (voysisClient.getRefreshToken() && hostname == voysisClient.getHost()) {
+                  if (voysisClient.getRefreshToken() && hostname == lastHostname) {
                       popupLogin = false;
                   }
-                  updateHostnameField(hostname);
               }
               if (popupLogin) {
                   $('#gettingStartedModal').addClass('is-active');
               }
-              var serviceType = getUrlParameter('servicetype');
+              serviceType = getUrlParameter('servicetype');
               setHelpMessage(serviceType);
           }
       });
@@ -307,6 +308,7 @@
                   voysisClient.setRefreshToken(data.refreshToken);
                   voysisClient.setUserId(data.userId);
                   resetState();
+                  setHelpMessage(serviceType);
                   resolve();
               })
               .fail(function(jqxhr) {
