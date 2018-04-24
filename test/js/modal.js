@@ -3,7 +3,8 @@ $(".show-feedback-modal").click(function() {
 });
 
 $(".show-settings-modal").click(function() {
-  $("#settingsModal").addClass("is-active"); 
+  $('#gettingStartedModal').find('[data-mode=full]').show();
+  $("#gettingStartedModal").addClass("is-active");
 });
 
 $(".modal-card-close").click(function() {

@@ -254,6 +254,9 @@
         if (conversationId) {
             queryEntity.conversationId = conversationId;
         }
+        if (args_.userId) {
+            queryEntity.userId = args_.userId;
+        }
         return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
     }
 
@@ -316,7 +319,7 @@
                 callback = getCallback(msg.requestId);
             } else {
                 callback = getCallback(msg.requestId, true);
-                callbackArg = msg.responseMessage;
+                callbackArg = {responseCode: msg.responseCode, responseMessage: msg.responseMessage};
             }
         } else if (msg.type == 'notification') {
             switch (msg.notificationType) {

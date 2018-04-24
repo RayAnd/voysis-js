@@ -168,61 +168,43 @@
     </div>
   </div>
 
-  <!-- Modal - Settings -->
-  <div id="settingsModal" class="modal fadeInUp">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <h2 class="modal-card-title">Settings</h2>
-        <button class="delete modal-card-close" aria-label="close"></button>
-      </header>
-      <section class="modal-card-body">
-
-        <!-- form -->
-        <form>
-          <label class="label">Your endpoint URL</label>
-          <div class="field has-addons">
-            <div class="control is-expanded">
-                <input class="input hostname" type="url" id="settingsHostname" placeholder="Endpoint URL" required>
-            </div>
-          </div>
-            <label class="label">Your refresh token</label>
-            <div class="field has-addons">
-                <div class="control is-expanded">
-                    <input class="input refreshToken" type="url" id="settingsRefreshToken" placeholder="Leave blank to use default" required>
-                </div>
-            </div>
-        </form>
-        <!-- Form end -->
-
-      </section>
-      <footer class="modal-card-foot">
-          <button class="button is-small" onclick="closeModalAndUpdate('settingsModal', $('#settingsHostname').val(), $('#settingsRefreshToken').val())">Update</button>
-      </footer>
-    </div>
-  </div>
-
   <!-- Modal - Submit Url -->
   <div id="gettingStartedModal" class="modal">
     <div class="modal-background"></div>
     <div class="modal-card">
       <header class="modal-card-head">
-          <h2 class="modal-card-title">Please enter your URL and refresh token</h2>
+          <h2 class="modal-card-title">Please Login with your Voysis Account</h2>
+          <button class="delete modal-card-close" aria-label="close" data-mode="full" style="display: none;"></button>
       </header>
       <section class="modal-card-body">
 
-          <!-- form -->
-          <form>
-              <label class="label">Your endpoint URL</label>
-              <div class="field has-addons">
-                  <div class="control is-expanded">
-                      <input class="input hostname" type="url" id="gettingStartedHostname" placeholder="Endpoint URL" required>
+          <div class="notification-container" style="display: none;" id="gettingStartedModalNotificationContainer">
+              <div class="notification is-warning">
+                  <div class="columns">
+                      <div class="column is-12-desktop" id="gettingStartedModalNotification">
+                      </div>
                   </div>
               </div>
-              <label class="label">Your refresh token</label>
+          </div>
+
+          <!-- form -->
+          <form>
+              <label class="label" data-mode="full" style="display: none;">Your endpoint URL</label>
+              <div class="field has-addons" data-mode="full" style="display: none;">
+                <div class="control is-expanded">
+                    <input class="input hostname" type="url" id="settingsHostname" placeholder="Endpoint URL" required>
+                </div>
+              </div>
+              <label class="label" data-mode="brief">Email Address</label>
               <div class="field has-addons">
                   <div class="control is-expanded">
-                      <input class="input refreshToken" type="url" id="gettingStartedRefreshToken" placeholder="Leave blank to use default" required>
+                      <input class="input email" type="url" id="gettingStartedEmail" required>
+                  </div>
+              </div>
+              <label class="label" data-mode="brief">Password</label>
+              <div class="field has-addons">
+                  <div class="control is-expanded">
+                      <input class="input password" type="password" id="gettingStartedPassword" required>
                   </div>
               </div>
           </form>
@@ -230,7 +212,7 @@
 
       </section>
         <footer class="modal-card-foot">
-            <button class="button is-small" onclick="closeModalAndUpdate('gettingStartedModal', $('#gettingStartedHostname').val(), $('#gettingStartedRefreshToken').val())">Get Started</button>
+            <button class="button is-small" onclick="doLogin($('#gettingStartedEmail'), $('#gettingStartedPassword')).then(function(){closeModal('gettingStartedModal')})">Get Started</button>
         </footer>
     </div>
   </div>
@@ -254,6 +236,7 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="https://cdn.voysis.io/js/voysis.js"></script>
+  <script src="https://voice.adenki.com/js-sdk/voysis.js"></script>
   <script src="js/modal.js"></script>
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
@@ -261,6 +244,7 @@
       if (window.location.protocol === 'http:') {
           window.location = 'https:' + window.location.href.substring(window.location.protocol.length);
       }
+      var loginService = 'https://ladon.voysis.io/login';
       var help;
       var lastQuery;
       var currentRating = 5;
@@ -277,11 +261,19 @@
               voysisClient.error('Browser not supported');
           } else {
               var hostname = getUrlParameter('hostname');
-              if (updateHostnameField(hostname) == null) {
-                  hostname = voysisClient.getHost();
-                  if (updateHostnameField(hostname) == null) {
-                      $('#gettingStartedModal').addClass('is-active');
+              var popupLogin = true;
+              $('#gettingStartedEmail').val(voysisClient.getEmail());
+              if (!hostname) {
+                  window.location.replace('support.html');
+                  return;
+              } else {
+                  if (voysisClient.getRefreshToken() && hostname == voysisClient.getHost()) {
+                      popupLogin = false;
                   }
+                  updateHostnameField(hostname);
+              }
+              if (popupLogin) {
+                  $('#gettingStartedModal').addClass('is-active');
               }
               var serviceType = getUrlParameter('servicetype');
               setHelpMessage(serviceType);
@@ -298,17 +290,37 @@
           return hostname;
       }
 
-      function updateRefreshTokenField(refreshToken) {
-          voysisClient.setRefreshToken(refreshToken);
-          $('.refreshToken').val(refreshToken);
-          resetState();
+      function doLogin(emailField, passwordField) {
+          return new Promise(function(resolve) {
+              var credentials = {
+                  email: emailField.val(),
+                  password: passwordField.val()
+              };
+              $('#gettingStartedModalNotificationContainer').hide();
+              voysisClient.setEmail(credentials.email);
+              $.ajax({
+                  url: loginService,
+                  method: 'POST',
+                  data: JSON.stringify(credentials),
+                  contentType: "application/json"
+              }).done(function(data) {
+                  passwordField.val('');
+                  voysisClient.setRefreshToken(data.refreshToken);
+                  voysisClient.setUserId(data.userId);
+                  resetState();
+                  resolve();
+              })
+              .fail(function(jqxhr) {
+                  $('#gettingStartedModalNotification').text('Invalid e-mail or password');
+                  $('#gettingStartedModalNotificationContainer').show();
+              });
+          });
       }
 
-      function closeModalAndUpdate(modal, hostname, refreshToken) {
-          updateHostnameField(hostname);
-          updateRefreshTokenField(refreshToken);
+      function closeModal(modal) {
           $('#' + modal).removeClass('is-active');
       }
+
 
       function resetState() {
           resetFeedback();
@@ -388,7 +400,12 @@
               }).catch(function (error) {
                   console.error(error);
                   mic_button.classList.remove('is-active');
-                  voysisClient.error('Query error: ' + error.message);
+                  if (error.responseCode && error.responseCode == 403) {
+                      voysisClient.error('Authentication Required');
+                      $('#gettingStartedModal').addClass('is-active');
+                  } else {
+                      voysisClient.error('Query error: ' + error.message);
+                  }
               });
           } else {
               mic_button.classList.remove('is-active');
