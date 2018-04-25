@@ -371,7 +371,7 @@
 
     function issueAppToken() {
         if (!args_.refreshToken) {
-            throw 'A refresh token is required to issue an application token.';
+            throw new Error('A refresh token is required to issue an application token.');
         }
         return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken).then(saveSessionApiToken);
     }
