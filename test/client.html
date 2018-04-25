@@ -262,17 +262,16 @@
           } else {
               var hostname = getUrlParameter('hostname');
               var lastHostname = voysisClient.getHost();
-              var popupLogin = true;
               $('#gettingStartedEmail').val(voysisClient.getEmail());
               updateHostnameField(hostname || lastHostname);
-              if (!hostname) {
-                  $('#gettingStartedModal').find('[data-mode=full]').show();
+              if (hostname && voysisClient.getRefreshToken()) {
+                  voysisClient.getVoysisSession().issueAppToken().catch(function() {
+                      $('#gettingStartedModal').addClass('is-active');
+                  });
               } else {
-                  if (voysisClient.getRefreshToken() && hostname == lastHostname) {
-                      popupLogin = false;
+                  if (!hostname) {
+                      $('#gettingStartedModal').find('[data-mode=full]').show();
                   }
-              }
-              if (popupLogin) {
                   $('#gettingStartedModal').addClass('is-active');
               }
               serviceType = getUrlParameter('servicetype');

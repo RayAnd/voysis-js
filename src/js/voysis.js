@@ -83,6 +83,10 @@
         return false;
     };
 
+    VoysisSession.prototype.issueAppToken = function() {
+        return issueAppToken();
+    };
+
     VoysisSession.prototype.finishStreamingAudio = function () {
         stopStreaming_ = true;
         recordDuration('userStop');
@@ -365,10 +369,17 @@
         sessionApiToken_.expiresAtEpoch = Date.parse(sessionApiToken.expiresAt);
     }
 
+    function issueAppToken() {
+        if (!args_.refreshToken) {
+            throw 'A refresh token is required to issue an application token.';
+        }
+        return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken).then(saveSessionApiToken);
+    }
+
     function checkSessionToken() {
         if (args_.refreshToken && sessionApiToken_.expiresAtEpoch < (Date.now() + args_.tokenExpiryMargin)) {
             debug("Session token has expired: ", sessionApiToken_.expiresAtEpoch, ' - ', Date.now(), " - Expiry margin is ", args_.tokenExpiryMargin);
-            return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken);
+            return issueAppToken();
         } else {
             debug("Session token still valid");
             return new Promise(function (resolve) {

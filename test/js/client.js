@@ -82,9 +82,7 @@
 
             setHost: function (host) {
                 host_ = host;
-                refreshToken_ = null;
                 localStorage.setItem(HOST, host);
-                localStorage.removeItem(REFRESH_TOKEN);
                 sessionChanged_ = true;
             },
 
