@@ -28,12 +28,16 @@
         const AUDIO_PROFILE_ID = 'AudioProfileId';
         const HOST = 'Host';
         const REFRESH_TOKEN = 'RefreshToken';
+        const EMAIL = 'Email';
+        const USER_ID = 'UserId';
         const localStorage = window.localStorage;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext_;
         var audioProfileId_ = localStorage.getItem(AUDIO_PROFILE_ID) || createAudioProfileId();
         var host_ = localStorage.getItem(HOST);
         var refreshToken_ = localStorage.getItem(REFRESH_TOKEN);
+        var email_ = localStorage.getItem(EMAIL);
+        var userId_ = localStorage.getItem(USER_ID);
         var voysisSession_;
         var statusMessageElement_;
         var statusBarElement_;
@@ -108,6 +112,26 @@
                 sessionChanged_ = true;
             },
 
+            getEmail: function() {
+                return email_;
+            },
+
+            setEmail: function(email) {
+                email_ = email;
+                localStorage.setItem(EMAIL, email);
+                sessionChanged_ = true;
+            },
+
+            getUserId: function() {
+                return userId_;
+            },
+
+            setUserId: function(userId) {
+                userId_ = userId;
+                localStorage.setItem(USER_ID, userId);
+                sessionChanged_ = true;
+            },
+
             getVoysisSession: function () {
                 if (!voysisSession_ || sessionChanged_) {
                     previousQueryContext_ = null;
@@ -117,7 +141,8 @@
                         audioProfileId: audioProfileId_,
                         debugEnabled: true,
                         streamingAudioDeadline: 10000,
-                        autoSendDurations: true
+                        autoSendDurations: true,
+                        userId: userId_
                     });
                     sessionChanged_ = false;
                 }

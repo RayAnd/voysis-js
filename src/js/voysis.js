@@ -83,6 +83,10 @@
         return false;
     };
 
+    VoysisSession.prototype.issueAppToken = function() {
+        return issueAppToken();
+    };
+
     VoysisSession.prototype.finishStreamingAudio = function () {
         stopStreaming_ = true;
         recordDuration('userStop');
@@ -254,6 +258,9 @@
         if (conversationId) {
             queryEntity.conversationId = conversationId;
         }
+        if (args_.userId) {
+            queryEntity.userId = args_.userId;
+        }
         return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
     }
 
@@ -316,7 +323,7 @@
                 callback = getCallback(msg.requestId);
             } else {
                 callback = getCallback(msg.requestId, true);
-                callbackArg = msg.responseMessage;
+                callbackArg = {responseCode: msg.responseCode, responseMessage: msg.responseMessage};
             }
         } else if (msg.type == 'notification') {
             switch (msg.notificationType) {
@@ -362,10 +369,17 @@
         sessionApiToken_.expiresAtEpoch = Date.parse(sessionApiToken.expiresAt);
     }
 
+    function issueAppToken() {
+        if (!args_.refreshToken) {
+            throw new Error('A refresh token is required to issue an application token.');
+        }
+        return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken).then(saveSessionApiToken);
+    }
+
     function checkSessionToken() {
         if (args_.refreshToken && sessionApiToken_.expiresAtEpoch < (Date.now() + args_.tokenExpiryMargin)) {
             debug("Session token has expired: ", sessionApiToken_.expiresAtEpoch, ' - ', Date.now(), " - Expiry margin is ", args_.tokenExpiryMargin);
-            return sendRequest('POST', '/tokens', null, {'Accept': 'application/json'}, args_.refreshToken);
+            return issueAppToken();
         } else {
             debug("Session token still valid");
             return new Promise(function (resolve) {
