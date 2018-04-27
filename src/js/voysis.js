@@ -197,7 +197,6 @@
 
     function sendFeedback(queryForFeedback, rating, description, durations) {
         var sendFeedbackFunction = function(sessionApiToken) {
-            saveSessionApiToken(sessionApiToken);
             var feedbackUri = queryForFeedback._links.self.href + '/feedback';
             debug('Sending feedback to: ', feedbackUri);
             var feedbackData = {};
@@ -350,7 +349,6 @@
 
     function sendAudioRequest(method, uri, entity, skipCheckSessionToken) {
         var sendRequestFunction = function (sessionApiToken) {
-            saveSessionApiToken(sessionApiToken);
             var audioHeaders = {
                 'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
                 'X-Voysis-Ignore-Vad': false,
@@ -367,6 +365,7 @@
     function saveSessionApiToken(sessionApiToken) {
         sessionApiToken_ = sessionApiToken;
         sessionApiToken_.expiresAtEpoch = Date.parse(sessionApiToken.expiresAt);
+        return sessionApiToken;
     }
 
     function issueAppToken() {
