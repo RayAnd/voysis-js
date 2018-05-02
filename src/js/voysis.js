@@ -83,7 +83,7 @@
         return false;
     };
 
-    VoysisSession.prototype.issueAppToken = function() {
+    VoysisSession.prototype.issueAppToken = function () {
         return issueAppToken();
     };
 
@@ -185,7 +185,7 @@
         return promise;
     };
 
-    VoysisSession.prototype.rateQuery = function(queryToRate, rating, description) {
+    VoysisSession.prototype.rateQuery = function (queryToRate, rating, description) {
         return sendFeedback(queryToRate, rating, description);
     };
 
@@ -196,7 +196,7 @@
     };
 
     function sendFeedback(queryForFeedback, rating, description, durations) {
-        var sendFeedbackFunction = function(sessionApiToken) {
+        var sendFeedbackFunction = function (sessionApiToken) {
             var feedbackUri = queryForFeedback._links.self.href + '/feedback';
             debug('Sending feedback to: ', feedbackUri);
             var feedbackData = {};
@@ -250,7 +250,7 @@
             'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
-                'mimeType': 'audio/wav'
+                'mimeType': 'audio/pcm;bits=16;rate=' + DESIRED_SAMPLING_RATE
             },
             'context': context || {}
         };
