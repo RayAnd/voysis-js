@@ -26,13 +26,18 @@
         <div class="navbar-end is-flex-touch">
           <a class="navbar-item show-settings-modal">
             <span class="icon">
-              <img src="i/js-tester/icon-settings.svg">
+              <img src="i/js-tester/icon-settings.svg" title="Settings" alt="Logout">
             </span>
           </a>
             <a class="navbar-item" onclick="toggleHelp()">
             <span class="icon">
-              <img src="i/js-tester/icon-help.svg">
+              <img src="i/js-tester/icon-help.svg" title="Help" alt="Help">
             </span>
+          </a>
+          <a class="navbar-item">
+              <span class="icon">
+                  <img src="i/js-tester/icon-logout.svg" title="Logout" alt="Logout" onclick="logout()">
+              </span>
           </a>
         </div>
       </div>
@@ -360,6 +365,11 @@
           }
       }
 
+      function logout() {
+          voysisClient.clearRefreshToken();
+          $('#gettingStartedModal').addClass('is-active');
+      }
+
       function resetFeedback() {
           $('#feedbackDescription').val("");
           $('.rating .button .icon .icon-star').addClass('is-active');
@@ -402,6 +412,7 @@
                   mic_button.classList.remove('is-active');
                   if (error.responseCode && error.responseCode == 403) {
                       voysisClient.error('Authentication Required');
+                      voysisClient.clearRefreshToken();
                       $('#gettingStartedModal').addClass('is-active');
                   } else {
                       voysisClient.error('Query error: ' + error.message);

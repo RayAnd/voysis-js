@@ -112,6 +112,12 @@
                 sessionChanged_ = true;
             },
 
+            clearRefreshToken: function() {
+                refreshToken_ = undefined;
+                localStorage.removeItem(REFRESH_TOKEN);
+                sessionChanged_ = true;
+            },
+
             getEmail: function() {
                 return email_;
             },
