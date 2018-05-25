@@ -2,6 +2,9 @@
 /.idea
 **/*.iml
 
+# Ignore downloaded grunt plugins
+/.grunt
+
 # Ignore NPM installed dependencies
 /node_modules
 
