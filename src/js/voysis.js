@@ -31,13 +31,13 @@
     }
 })(this, function () {
     'use strict';
-    const DESIRED_SAMPLING_RATE = 16000;
-    const STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
-    const VAD_STOP_CALLBACK_KEY = 'VadStopCallback';
-    const ERROR_CALLBACK_KEY_POSTFIX = '.error';
-    const VAD_STOP_NOTIFICATION = 'vad_stop';
-    const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
-    const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
+    var DESIRED_SAMPLING_RATE = 16000;
+    var STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
+    var VAD_STOP_CALLBACK_KEY = 'VadStopCallback';
+    var ERROR_CALLBACK_KEY_POSTFIX = '.error';
+    var VAD_STOP_NOTIFICATION = 'vad_stop';
+    var QUERY_COMPLETE_NOTIFICATION = 'query_complete';
+    var INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
     var AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
     var args_ = {};
@@ -77,13 +77,13 @@
         // Look for a getUserMedia method for the current platform
         if (AudioContext &&
             (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
-            (navigator.mediaDevices && navigator.mediaDevices.getUserMedia))) {
+                (navigator.mediaDevices && navigator.mediaDevices.getUserMedia))) {
             return true;
         }
         return false;
     };
 
-    VoysisSession.prototype.issueAppToken = function() {
+    VoysisSession.prototype.issueAppToken = function () {
         return issueAppToken();
     };
 
@@ -185,7 +185,7 @@
         return promise;
     };
 
-    VoysisSession.prototype.rateQuery = function(queryToRate, rating, description) {
+    VoysisSession.prototype.rateQuery = function (queryToRate, rating, description) {
         return sendFeedback(queryToRate, rating, description);
     };
 
@@ -193,22 +193,22 @@
         debug('Durations', queryDurations_);
         sendFeedback(query, null, null, queryDurations_);
         return query;
-    };
+    }
 
     function sendFeedback(queryForFeedback, rating, description, durations) {
-        var sendFeedbackFunction = function(sessionApiToken) {
+        var sendFeedbackFunction = function () {
             var feedbackUri = queryForFeedback._links.self.href + '/feedback';
             debug('Sending feedback to: ', feedbackUri);
             var feedbackData = {};
             if (rating) {
-                feedbackData['rating'] = rating;
+                feedbackData.rating = rating;
             }
             if (description) {
-                feedbackData['description'] = description;
+                feedbackData.description = description;
             }
             if (durations) {
                 // JSON doesn't support Map, so we need to convert it to an Object
-                feedbackData['durations'] = mapToObject(durations);
+                feedbackData.durations = mapToObject(durations);
             }
             var jsonFeedbackData = JSON.stringify(feedbackData);
             debug("Sending feedback: ", jsonFeedbackData);
@@ -250,7 +250,7 @@
             'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
-                'mimeType': 'audio/wav'
+                'mimeType': 'audio/pcm;bits=16;rate=' + DESIRED_SAMPLING_RATE
             },
             'context': context || {}
         };
@@ -348,13 +348,13 @@
     }
 
     function sendAudioRequest(method, uri, entity, skipCheckSessionToken) {
-        var sendRequestFunction = function (sessionApiToken) {
+        var sendRequestFunction = function () {
             var audioHeaders = {
                 'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
                 'X-Voysis-Ignore-Vad': false,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
-            return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token)
+            return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token);
         };
         if (skipCheckSessionToken) {
             return sendRequestFunction(sessionApiToken_);
@@ -399,7 +399,7 @@
                     'headers': {}
                 };
                 if (authToken) {
-                    msg.headers.Authorization = 'Bearer ' + authToken
+                    msg.headers.Authorization = 'Bearer ' + authToken;
                 }
                 if (entity != null) {
                     msg.entity = entity;
@@ -435,7 +435,7 @@
 
     function checkFunction(func) {
         if (func && typeof func !== 'function') {
-            throw new TypeError('Not a function')
+            throw new TypeError('Not a function');
         }
         return (func != null);
     }
@@ -494,6 +494,7 @@
 
     function debug() {
         if (args_.debugEnabled) {
+            /*eslint no-console: ["error", { allow: ["log"] }] */
             console.log.apply(console, arguments);
         }
     }

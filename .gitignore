@@ -2,11 +2,14 @@
 /.idea
 **/*.iml
 
+# Ignore downloaded grunt plugins
+/.grunt
+
+# Ignore NPM installed dependencies
+/node_modules
+
 # Ignore the project build directory
 /build
-
-# Ignore the buildshim build directory
-/_builds
 
 # Compiled source #
 ###################
