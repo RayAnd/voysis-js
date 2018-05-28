@@ -35,7 +35,7 @@ The first step to using the lib is to create a VoysisSession.
 ```js
     var voysisSession = new VoysisSession({
         host: 'mycompany.voysis.io',
-        audioProfile: 'f8338e44-9d48-11e7-abc4-cec278b6b50a'
+        audioProfileId: '123e4567-e89b-12d3-a456-426655440000'
     });
 ```
 
