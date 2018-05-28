@@ -1,12 +1,29 @@
 module.exports = function (grunt) {
+    'use strict';
 
     var pkg = grunt.file.readJSON('package.json');
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        eslint: {
+            all: [
+                'Gruntfile.js',
+                'src/js/*.js'
+            ],
+            options: {
+                configFile: '.eslintrc'
+            }
+        },
+        jasmine: {
+            src: 'src/js/*.js',
+            options: {
+                specs: 'spec/*.js',
+                keepRunner: false
+            }
+        },
         copy: {
             main: {
                 options: {
-                    process: function (content, srcpath) {
+                    process: function (content) {
                         return content.replace(/\${LIBRARY_VERSION}/g, pkg.version);
                     }
                 },
@@ -37,10 +54,13 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.loadNpmTasks('grunt-contrib-uglify-es');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-jasmine');
+    grunt.loadNpmTasks('grunt-contrib-uglify-es');
+    grunt.loadNpmTasks('grunt-eslint');
 
+    grunt.registerTask('test', ['jasmine']);
     grunt.registerTask('dist', ['copy', 'uglify']);
-    grunt.registerTask('default', ['dist']);
+    grunt.registerTask('default', ['test', 'eslint', 'dist']);
 
 };
