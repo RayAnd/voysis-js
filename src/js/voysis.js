@@ -31,14 +31,14 @@
     }
 })(this, function () {
     'use strict';
-    var DESIRED_SAMPLING_RATE = 16000;
-    var STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
-    var VAD_STOP_CALLBACK_KEY = 'VadStopCallback';
-    var ERROR_CALLBACK_KEY_POSTFIX = '.error';
-    var VAD_STOP_NOTIFICATION = 'vad_stop';
-    var QUERY_COMPLETE_NOTIFICATION = 'query_complete';
-    var INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
-    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    const DESIRED_SAMPLING_RATE = 16000;
+    const STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
+    const VAD_STOP_CALLBACK_KEY = 'VadStopCallback';
+    const ERROR_CALLBACK_KEY_POSTFIX = '.error';
+    const VAD_STOP_NOTIFICATION = 'vad_stop';
+    const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
+    const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
     var args_ = {};
     var webSocket_;
@@ -291,8 +291,9 @@
             });
         } else {
             return new Promise(function (resolve, reject) {
-                debug('Opening WebSocket');
+                debug('Creating WebSocket');
                 webSocket_ = new WebSocket('wss://' + args_.host + '/websocketapi');
+                debug('Opening WebSocket', webSocket_);
                 webSocket_.onopen = function (event) {
                     debug('WebSocket onopen: ', event);
                     resolve();
