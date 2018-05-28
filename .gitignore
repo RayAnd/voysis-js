@@ -11,6 +11,9 @@
 # Ignore the project build directory
 /build
 
+# Ignore the generates Jasmine Spec Runner
+/_SpecRunner.html
+
 # Compiled source #
 ###################
 *.com
