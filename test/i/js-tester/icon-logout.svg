@@ -1,73 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="24"
-   height="24"
-   viewBox="0 0 24 24"
-   id="svg2"
-   version="1.1"
-   inkscape:version="0.91 r13725"
-   sodipodi:docname="icon-logout.svg">
-  <defs
-     id="defs4" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#000000"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="5.71"
-     inkscape:cx="146.31524"
-     inkscape:cy="71.884413"
-     inkscape:document-units="px"
-     inkscape:current-layer="layer2"
-     showgrid="false"
-     units="px"
-     inkscape:window-width="2560"
-     inkscape:window-height="1387"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1" />
-  <metadata
-     id="metadata7">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(0,-1028.3622)"
-     style="opacity:1" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="Layer 2">
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.84240276px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 15.139259,6.2679339 0,-4.4142015 L 2.4425141,2.2068685 2.1959753,21.452787 14.89272,21.276219 l 0,-5.650178"
-       id="path3339"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 11.208406,8.5884413 8.581436,0 -0.700525,-3.5026269 4.378284,6.6549916 -5.954466,5.604203 2.101576,-5.253941 -8.231173,0.175132 z"
-       id="path3341"
-       inkscape:connector-curvature="0" />
-  </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="23px" height="24px" viewBox="0 0 23 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50 (54983) - http://www.bohemiancoding.com/sketch -->
+    <title>Fill 1</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard-Copy-9" transform="translate(-1296.000000, -115.000000)" fill="#FFFFFF">
+            <path d="M1316.88586,127.651608 L1313.68234,130.855123 C1313.49229,131.045175 1313.49229,131.180927 1313.68234,131.370979 L1314.0896,131.778234 C1314.27942,131.968287 1314.41517,131.968287 1314.5783,131.778234 C1315.96274,130.420717 1317.34741,129.036276 1318.70493,127.651608 C1319.08503,127.298654 1319.08503,126.728497 1318.70493,126.375542 C1317.34741,124.990874 1315.96274,123.606433 1314.5783,122.248916 C1314.41517,122.058863 1314.27942,122.058863 1314.0896,122.248916 L1313.68234,122.656171 C1313.49229,122.846223 1313.49229,122.981749 1313.68234,123.172028 L1316.88586,126.375542 L1304.17203,126.375542 C1303.90052,126.375542 1303.81885,126.456993 1303.81885,126.728497 L1303.81885,127.298654 C1303.81885,127.570157 1303.90052,127.651608 1304.17203,127.651608 L1316.88586,127.651608 Z M1311.611,134.411592 C1311.611,136.936574 1309.57472,139 1307.02259,139 L1300.58818,139 C1298.06343,139 1296,136.936574 1296,134.411592 L1296,119.588182 C1296,117.063426 1298.06343,115 1300.58818,115 L1307.02259,115 C1309.57472,115 1311.611,117.063426 1311.611,119.588182 L1311.611,122.873374 C1311.611,123.117501 1311.52932,123.226102 1311.25782,123.226102 L1310.68788,123.226102 C1310.41615,123.226102 1310.3347,123.117501 1310.3347,122.873374 L1310.3347,119.588182 C1310.3347,117.769109 1308.84143,116.303217 1307.02259,116.303217 L1300.58818,116.303217 C1298.79649,116.303217 1297.30299,117.769109 1297.30299,119.588182 L1297.30299,134.411592 C1297.30299,136.230665 1298.79649,137.696783 1300.58818,137.696783 L1307.02259,137.696783 C1308.84143,137.696783 1310.3347,136.230665 1310.3347,134.411592 L1310.3347,131.153777 C1310.3347,130.882273 1310.41615,130.800822 1310.68788,130.800822 L1311.25782,130.800822 C1311.52932,130.800822 1311.611,130.882273 1311.611,131.153777 L1311.611,134.411592 Z" id="Fill-1"></path>
+        </g>
+    </g>
 </svg>
