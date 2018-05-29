@@ -109,7 +109,7 @@
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
                 try {
-                    debug('Recording at ', audioContext_.sampleRate, "Hz");
+                    debug('Recording at ', audioContext_.sampleRate, 'Hz');
                     var source = audioContext_.createMediaStreamSource(stream);
                     var processor = audioContext_.createScriptProcessor(4096, 1, 1);
                     var stopStreaming = (function () {
@@ -158,22 +158,22 @@
                 }
             };
             addCallbacks(STREAM_AUDIO_CALLBACK_KEY, resolve, reject);
-            debug("Getting user media");
+            debug('Getting user media');
             // Use the latest getUserMedia method if it exists
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                debug("Using standard getUserMedia");
+                debug('Using standard getUserMedia');
                 navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch(reject);
             } else {
                 // Find a getUserMedia method for the current platform
                 if (navigator.getUserMedia) {
-                    debug("Using navigator.getUserMedia");
+                    debug('Using navigator.getUserMedia');
                 } else if (navigator.webkitGetUserMedia) {
-                    debug("Using navigator.webkitGetUserMedia");
+                    debug('Using navigator.webkitGetUserMedia');
                 } else if (navigator.mozGetUserMedia) {
-                    debug("Using navigator.mozGetUserMedia");
+                    debug('Using navigator.mozGetUserMedia');
                 } else {
-                    debug("No getUserMedia available");
-                    reject(createError("Browser does not support streaming audio", "NotSupportedError"));
+                    debug('No getUserMedia available');
+                    reject(createError('Browser does not support streaming audio', 'NotSupportedError'));
                 }
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
                 getUserMedia({audio: true}, onSuccess, reject);
@@ -211,7 +211,7 @@
                 feedbackData.durations = mapToObject(durations);
             }
             var jsonFeedbackData = JSON.stringify(feedbackData);
-            debug("Sending feedback: ", jsonFeedbackData);
+            debug('Sending feedback: ', jsonFeedbackData);
             var headers = {
                 'Accept': 'application/vnd.voysisquery.v1+json',
                 'Content-Type': 'application/json'
@@ -270,7 +270,7 @@
             if (AudioContext) {
                 audioContext_ = new AudioContext();
             } else {
-                throw createError("Browser does not support streaming audio", "NotSupportedError");
+                throw createError('Browser does not support streaming audio', 'NotSupportedError');
             }
         }
         if (audioContext_.state === 'suspended') {
@@ -285,7 +285,7 @@
     function openWebSocket() {
         // If the websocket is already open, don't do anything
         if (isWebSocketOpen()) {
-            debug("WebSocket already open");
+            debug('WebSocket already open');
             return new Promise(function (resolve) {
                 resolve();
             });
@@ -378,10 +378,10 @@
 
     function checkSessionToken() {
         if (args_.refreshToken && sessionApiToken_.expiresAtEpoch < (Date.now() + args_.tokenExpiryMargin)) {
-            debug("Session token has expired: ", sessionApiToken_.expiresAtEpoch, ' - ', Date.now(), " - Expiry margin is ", args_.tokenExpiryMargin);
+            debug('Session token has expired: ', sessionApiToken_.expiresAtEpoch, ' - ', Date.now(), ' - Expiry margin is ', args_.tokenExpiryMargin);
             return issueAppToken();
         } else {
-            debug("Session token still valid");
+            debug('Session token still valid');
             return new Promise(function (resolve) {
                 resolve(sessionApiToken_);
             });
