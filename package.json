@@ -11,12 +11,10 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jasmine": "git+https://github.com/gruntjs/grunt-contrib-jasmine.git",
     "grunt-contrib-uglify-es": "^3.3.0",
-    "grunt-eslint": "^20.1.0"
+    "grunt-eslint": "^20.1.0",
+    "mock-socket": "^7.1.0"
   },
   "scripts": {
     "test": "grunt test"
-  },
-  "dependencies": {
-    "mock-socket": "^7.1.0"
   }
 }
