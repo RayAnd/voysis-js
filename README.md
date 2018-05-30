@@ -1,5 +1,6 @@
 Voysis Javascript SDK
 =====================
+![Build Status: Linux](https://travis-ci.org/voysis/voysis-js.svg?branch=master)
 
 This document provides a brief overview of the voysis javascript sdk.
 This is a javascript library that facilitates sending voice
