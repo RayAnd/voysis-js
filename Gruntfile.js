@@ -17,6 +17,7 @@ module.exports = function (grunt) {
             src: 'src/js/*.js',
             options: {
                 specs: 'spec/*.js',
+                helpers: 'node_modules/mock-socket/dist/mock-socket.js',
                 keepRunner: false
             }
         },

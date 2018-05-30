@@ -1,5 +1,30 @@
 {
   "extends": "eslint:recommended",
+  "rules": {
+    // enable additional rules
+    "complexity": [
+      "error"
+    ],
+    "indent": [
+      "error",
+      4,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  },
   "parserOptions": {
     "ecmaVersion": 2017
   },
