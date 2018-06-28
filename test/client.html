@@ -217,7 +217,7 @@
 
       </section>
         <footer class="modal-card-foot">
-            <button class="button is-small" onclick="doLogin($('#gettingStartedEmail'), $('#gettingStartedPassword')).then(function(){closeModal('gettingStartedModal')})">Get Started</button>
+            <button class="button is-small" onclick="doLogin($('#gettingStartedEmail'), $('#gettingStartedPassword')).then(function(){updateHostnameField($('#settingsHostname').val())}).then(function(){closeModal('gettingStartedModal')})">Get Started</button>
         </footer>
     </div>
   </div>
