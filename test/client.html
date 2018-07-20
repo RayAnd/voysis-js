@@ -245,255 +245,275 @@
   <script src="js/mic-button.js"></script>
   <script src="js/client.js"></script>
   <script>
-      if (window.location.protocol === 'http:') {
-          window.location = 'https:' + window.location.href.substring(window.location.protocol.length);
-      }
-      var loginService = 'https://ladon.voysis.io/login';
-      var help;
-      var lastQuery;
-      var currentRating = 5;
-      var streaming = false;
-      var serviceType;
-      var sessionApiToken_ = {
-          token: null,
-          expiresAt: 0,
-          expiresAtEpoch: 0
-      };
-      $(document).ready(function () {
-          voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
-          if (!VoysisSession.isStreamingAudioSupported()) {
-              $('#browserNotSupportedModal').addClass('is-active');
-              voysisClient.error('Browser not supported');
-          } else {
-              var hostname = getUrlParameter('hostname');
-              var lastHostname = voysisClient.getHost();
-              $('#gettingStartedEmail').val(voysisClient.getEmail());
-              updateHostnameField(hostname || lastHostname);
-              if (hostname && voysisClient.getRefreshToken()) {
-                  voysisClient.getVoysisSession().issueAppToken().catch(function() {
-                      $('#gettingStartedModal').addClass('is-active');
-                  });
-              } else {
-                  if (!hostname) {
-                      $('#gettingStartedModal').find('[data-mode=full]').show();
-                  }
+    if (window.location.protocol === 'http:') {
+      window.location = 'https:' + window.location.href.substring(window.location.protocol.length);
+    }
+    var loginService = 'https://ladon.voysis.io/login';
+    var help;
+    var lastQuery;
+    var currentRating = 5;
+    var streaming = false;
+    var serviceType;
+    var sessionApiToken_ = {
+      token: null,
+      expiresAt: 0,
+      expiresAtEpoch: 0
+    };
+    $(document).ready(function () {
+      voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
+      if (!VoysisSession.isStreamingAudioSupported()) {
+          $('#browserNotSupportedModal').addClass('is-active');
+          voysisClient.error('Browser not supported');
+      } else {
+          var hostname = getUrlParameter('hostname');
+          var lastHostname = voysisClient.getHost();
+          $('#gettingStartedEmail').val(voysisClient.getEmail());
+          updateHostnameField(hostname || lastHostname);
+          if (hostname && voysisClient.getRefreshToken()) {
+              voysisClient.getVoysisSession().issueAppToken().catch(function() {
                   $('#gettingStartedModal').addClass('is-active');
+              });
+          } else {
+              if (!hostname) {
+                  $('#gettingStartedModal').find('[data-mode=full]').show();
               }
-              serviceType = getUrlParameter('servicetype');
+              $('#gettingStartedModal').addClass('is-active');
+          }
+          serviceType = getUrlParameter('servicetype');
+          setHelpMessage(serviceType);
+      }
+    });
+
+    function updateHostnameField(hostname) {
+      if (hostname == '') {
+          hostname = null;
+      }
+      voysisClient.setHost(hostname);
+      $('.hostname').val(hostname);
+      resetState();
+      return hostname;
+    }
+
+    function doLogin(emailField, passwordField) {
+      return new Promise(function(resolve) {
+          var credentials = {
+              email: emailField.val(),
+              password: passwordField.val()
+          };
+          $('#gettingStartedModalNotificationContainer').hide();
+          voysisClient.setEmail(credentials.email);
+          $.ajax({
+              url: loginService,
+              method: 'POST',
+              data: JSON.stringify(credentials),
+              contentType: "application/json"
+          }).done(function(data) {
+              passwordField.val('');
+              voysisClient.setRefreshToken(data.refreshToken);
+              voysisClient.setUserId(data.userId);
+              resetState();
               setHelpMessage(serviceType);
-          }
-      });
-
-      function updateHostnameField(hostname) {
-          if (hostname == '') {
-              hostname = null;
-          }
-          voysisClient.setHost(hostname);
-          $('.hostname').val(hostname);
-          resetState();
-          return hostname;
-      }
-
-      function doLogin(emailField, passwordField) {
-          return new Promise(function(resolve) {
-              var credentials = {
-                  email: emailField.val(),
-                  password: passwordField.val()
-              };
-              $('#gettingStartedModalNotificationContainer').hide();
-              voysisClient.setEmail(credentials.email);
-              $.ajax({
-                  url: loginService,
-                  method: 'POST',
-                  data: JSON.stringify(credentials),
-                  contentType: "application/json"
-              }).done(function(data) {
-                  passwordField.val('');
-                  voysisClient.setRefreshToken(data.refreshToken);
-                  voysisClient.setUserId(data.userId);
-                  resetState();
-                  setHelpMessage(serviceType);
-                  resolve();
-              })
-              .fail(function(jqxhr) {
-                  $('#gettingStartedModalNotification').text('Invalid e-mail or password');
-                  $('#gettingStartedModalNotificationContainer').show();
-              });
+              resolve();
+          })
+          .fail(function(jqxhr) {
+              $('#gettingStartedModalNotification').text('Invalid e-mail or password');
+              $('#gettingStartedModalNotificationContainer').show();
           });
+      });
+    }
+
+    function closeModal(modal) {
+      $('#' + modal).removeClass('is-active');
+    }
+
+
+    function resetState() {
+      resetFeedback();
+      $('#queryResult').html('The response will be displayed here.');
+      voysisClient.finished('Tap mic to talk.');
+    }
+
+    function setHelpMessage(serviceType) {
+      if (serviceType === "music") {
+          help = $('#musicHelp');
+          help.addClass('is-active');
+          $('#jsonCode').removeClass('is-active');
+      } else if (serviceType === "commerce") {
+          help = $('#commerceHelp');
+          help.addClass('is-active');
+          $('#jsonCode').removeClass('is-active');
       }
+    }
 
-      function closeModal(modal) {
-          $('#' + modal).removeClass('is-active');
-      }
-
-
-      function resetState() {
-          resetFeedback();
-          $('#queryResult').html('The response will be displayed here.');
-          voysisClient.finished('Tap mic to talk.');
-      }
-
-      function setHelpMessage(serviceType) {
-          if (serviceType === "music") {
-              help = $('#musicHelp');
-              help.addClass('is-active');
-              $('#jsonCode').removeClass('is-active');
-          } else if (serviceType === "commerce") {
-              help = $('#commerceHelp');
-              help.addClass('is-active');
-              $('#jsonCode').removeClass('is-active');
-          }
-      }
-
-      function getUrlParameter(sParam) {
-          var sPageURL = window.location.search.substring(1);
-          var sURLVariables = sPageURL.split('&');
-          for (var i = 0; i < sURLVariables.length; i++)
+    function getUrlParameter(sParam) {
+      var sPageURL = window.location.search.substring(1);
+      var sURLVariables = sPageURL.split('&');
+      for (var i = 0; i < sURLVariables.length; i++)
+      {
+          var sParameterName = sURLVariables[i].split('=');
+          if (sParameterName[0] == sParam)
           {
-              var sParameterName = sURLVariables[i].split('=');
-              if (sParameterName[0] == sParam)
-              {
-                  return sParameterName[1];
-              }
+              return sParameterName[1];
           }
       }
+    }
 
-      function toggleHelp() {
-          if (help != null) {
-              $('#jsonCode').toggleClass('is-active');
-              help.toggleClass('is-active');
-          }
+    function toggleHelp() {
+      if (help != null) {
+          $('#jsonCode').toggleClass('is-active');
+          help.toggleClass('is-active');
       }
+    }
 
-      function logout() {
-          voysisClient.clearRefreshToken();
-          $('#gettingStartedModal').addClass('is-active');
-      }
+    function logout() {
+      voysisClient.clearRefreshToken();
+      $('#gettingStartedModal').addClass('is-active');
+    }
 
-      function resetFeedback() {
-          $('#feedbackDescription').val("");
-          $('.rating .button .icon .icon-star').addClass('is-active');
-          currentRating = 5;
-          lastQuery = null;
-      }
+    function resetFeedback() {
+      $('#feedbackDescription').val("");
+      $('.rating .button .icon .icon-star').addClass('is-active');
+      currentRating = 5;
+      lastQuery = null;
+    }
 
-      function startQuery(mic_button) {
-          var host = voysisClient.getHost();
-          console.log('Sending query to: ', host);
-          if (host && host != '') {
-              voysisClient.info('Starting...');
-              var voysisSession = voysisClient.getVoysisSession();
-              var audioContext = voysisClient.getAudioContext();
-              voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
-                  voysisClient.warn('Listening...');
-                  streaming = true;
-                  return voysisSession.streamAudio(audioQueryResponse, function(notificationType) {
-                      reportStopStreaming();
-                      console.log("Vad Notification: ", notificationType);
-                  });
-              }).then(function (queryResults) {
-                  lastQuery = queryResults;
-                  console.log("Query Results: ", queryResults);
-                  if (queryResults.context) {
-                      voysisClient.setPreviousQueryContext(queryResults.context);
-                  }
-                  if(queryResults.conversationId) {
-                      voysisClient.setQueryConversationId(queryResults.conversationId);
-                  }
-                  mic_button.classList.remove('is-active');
-                  voysisClient.finished('Query complete.');
-                  $('#queryResult').html(JSON.stringify(queryResults, null, 4));
-                  if (help != null) {
-                      $('#jsonCode').addClass('is-active');
-                      help.removeClass('is-active');
-                  }
-              }).catch(function (error) {
-                  console.error(error);
-                  mic_button.classList.remove('is-active');
-                  if (error.responseCode && error.responseCode == 403) {
-                      voysisClient.error('Authentication Required');
-                      voysisClient.clearRefreshToken();
-                      $('#gettingStartedModal').addClass('is-active');
-                  } else {
-                      voysisClient.error('Query error: ' + error.message);
-                  }
-              });
-          } else {
-              mic_button.classList.remove('is-active');
-              voysisClient.error('Enter AI hostname.');
-          }
-      }
-
-      function stopQuery() {
-          reportStopStreaming();
+    function startQuery(mic_button) {
+      var host = voysisClient.getHost();
+      console.log('Sending query to: ', host);
+      if (host && host != '') {
+          voysisClient.info('Starting...');
           var voysisSession = voysisClient.getVoysisSession();
-          voysisSession.finishStreamingAudio();
-      }
-
-      function reportStopStreaming() {
-          if (streaming) {
-              streaming = false;
-              voysisClient.info('Retrieving response...');
-          }
-      }
-
-      function sendRatingFeedback() {
-          if (lastQuery) {
-              var feedbackDescription = $('#feedbackDescription').val();
-              voysisClient.getVoysisSession().rateQuery(lastQuery, currentRating, feedbackDescription).then(function(updatedQuery) {
-                  voysisClient.finished('Feedback submitted');
-                  resetFeedback();
-              }).catch(function (error) {
-                  voysisClient.error(error.message);
+          var audioContext = voysisClient.getAudioContext();
+          voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
+              voysisClient.warn('Listening...');
+              streaming = true;
+              return voysisSession.streamAudio(audioQueryResponse, function(notificationType) {
+                  reportStopStreaming();
+                  console.log("Vad Notification: ", notificationType);
               });
-              voysisClient.info('Sending feedback...');
-          } else {
-              voysisClient.error("Perform query to send feedback");
-              resetFeedback();
-          }
-          $('#feedbackModal').removeClass('is-active');
-      }
-
-      function checkSessionToken() {
-          console.log('Refresh token: ', voysisClient.getRefreshToken());
-          if (voysisClient.getRefreshToken() && (sessionApiToken_ == null || sessionApiToken_.expiresAtEpoch < (Date.now() + 30000))) {
-              return new Promise(function (resolve, reject) {
-                  var tokenUrl = 'https://' + voysisClient.getHost() + '/tokens';
-                  console.log('Sending token request to: ', tokenUrl);
-                  try {
-                      $.ajax({
-                          headers: {
-                              'Authorization': 'Bearer ' + voysisClient.getRefreshToken(),
-                              'Content-Type': 'application/json'
-                          },
-                          type: 'POST',
-                          url: tokenUrl,
-                          success: function (apiToken) {
-                              resolve(apiToken);
-                          },
-                          error: function () {
-                              reject(new Error("Token refresh failed."));
-                          }
-                      });
-                  } catch (err) {
-                      reject(new Error("Token refresh failed."));
-                  }
-              });
-          } else {
-              return new Promise(function (resolve) {
-                  resolve(sessionApiToken_);
-              });
-          }
-      }
-
-      $(function() {
-          $('.rating .button').click(function() {
-              $('.rating .button .icon .icon-star').removeClass('is-active');
-              $(this).prevAll().find('i').addClass('is-active');
-              $(this).find('i').addClass('is-active');
-              currentRating = Number($(this).attr('value'));
+          }).then(function (queryResults) {
+              lastQuery = queryResults;
+              console.log("Query Results: ", queryResults);
+              if (queryResults.context) {
+                  voysisClient.setPreviousQueryContext(queryResults.context);
+              }
+              if(queryResults.conversationId) {
+                  voysisClient.setQueryConversationId(queryResults.conversationId);
+              }
+              mic_button.classList.remove('is-active');
+              voysisClient.finished('Query complete.');
+              $('#queryResult').html(JSON.stringify(queryResults, null, 4));
+              if (help != null) {
+                  $('#jsonCode').addClass('is-active');
+                  help.removeClass('is-active');
+              }
+          }).catch(function (error) {
+              console.error(error);
+              mic_button.classList.remove('is-active');
+              if (error.responseCode && error.responseCode == 403) {
+                  voysisClient.error('Authentication Required');
+                  voysisClient.clearRefreshToken();
+                  $('#gettingStartedModal').addClass('is-active');
+              } else {
+                  voysisClient.error('Query error: ' + error.message);
+              }
           });
+      } else {
+          mic_button.classList.remove('is-active');
+          voysisClient.error('Enter AI hostname.');
+      }
+    }
+    // text query part
+    // when the UI is updated send the value from the input form to this function
+    function startTextQuery(text) {
+    var host = voysisClient.getHost();
+    console.log('Sending query to: ', host);
+    if (host && host != '') {
+      voysisClient.info('Starting...');
+      var voysisSession = voysisClient.getVoysisSession();
+      voysisSession.createTextQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), text).then(function (queryResults) {
+        lastQuery = queryResults;
+        console.log("Query results: ", queryResults);
+        if (queryResults.context) {
+            voysisClient.setPreviousQueryContext(queryResults.context);
+        }
+        if (queryResult.conversationId) {
+            voysisClient.setQueryConversationId(queryResults.conversationId);
+        }
       });
+    }
+    }
+
+    function stopQuery() {
+      reportStopStreaming();
+      var voysisSession = voysisClient.getVoysisSession();
+      voysisSession.finishStreamingAudio();
+    }
+
+    function reportStopStreaming() {
+      if (streaming) {
+          streaming = false;
+          voysisClient.info('Retrieving response...');
+      }
+    }
+
+    function sendRatingFeedback() {
+      if (lastQuery) {
+          var feedbackDescription = $('#feedbackDescription').val();
+          voysisClient.getVoysisSession().rateQuery(lastQuery, currentRating, feedbackDescription).then(function(updatedQuery) {
+              voysisClient.finished('Feedback submitted');
+              resetFeedback();
+          }).catch(function (error) {
+              voysisClient.error(error.message);
+          });
+          voysisClient.info('Sending feedback...');
+      } else {
+          voysisClient.error("Perform query to send feedback");
+          resetFeedback();
+      }
+      $('#feedbackModal').removeClass('is-active');
+    }
+
+    function checkSessionToken() {
+      console.log('Refresh token: ', voysisClient.getRefreshToken());
+      if (voysisClient.getRefreshToken() && (sessionApiToken_ == null || sessionApiToken_.expiresAtEpoch < (Date.now() + 30000))) {
+          return new Promise(function (resolve, reject) {
+              var tokenUrl = 'https://' + voysisClient.getHost() + '/tokens';
+              console.log('Sending token request to: ', tokenUrl);
+              try {
+                  $.ajax({
+                      headers: {
+                          'Authorization': 'Bearer ' + voysisClient.getRefreshToken(),
+                          'Content-Type': 'application/json'
+                      },
+                      type: 'POST',
+                      url: tokenUrl,
+                      success: function (apiToken) {
+                          resolve(apiToken);
+                      },
+                      error: function () {
+                          reject(new Error("Token refresh failed."));
+                      }
+                  });
+              } catch (err) {
+                  reject(new Error("Token refresh failed."));
+              }
+          });
+      } else {
+          return new Promise(function (resolve) {
+              resolve(sessionApiToken_);
+          });
+      }
+    }
+
+    $(function() {
+      $('.rating .button').click(function() {
+          $('.rating .button .icon .icon-star').removeClass('is-active');
+          $(this).prevAll().find('i').addClass('is-active');
+          $(this).find('i').addClass('is-active');
+          currentRating = Number($(this).attr('value'));
+      });
+    });
   </script>
  </body>
 </html>

@@ -263,6 +263,24 @@
         return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
     }
 
+    function sendCreateTextQueryRequest(locale, context, conversationId, skipCheckSessionToken, text) {
+        var queryEntity = {
+            'locale': locale,
+            'queryType': 'text',
+            'textQuery': {
+              'text': text
+            },
+            'context': context || {}
+        };
+        if (conversationId) {
+            queryEntity.conversationId = conversationId;
+        }
+        if (args_.userId) {
+            queryEntity.userId = args_.userId;
+        }
+        return sendTextRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
+    };
+
     function checkAudioContext(audioContext) {
         audioContext_ = audioContext || audioContext_;
         if (audioContext_ == null) {
@@ -356,6 +374,20 @@
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
             return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token);
+        };
+        if (skipCheckSessionToken) {
+            return sendRequestFunction(sessionApiToken_);
+        }
+        return checkSessionToken().then(sendRequestFunction);
+    }
+    function sendTextRequest(method, uri, entity, skipCheckSessionToken) {
+        var sendRequestFunction = function () {
+            var textHeaders = {
+                'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
+                'X-Voysis-Ignore-Vad': true,
+                'Accept': 'application/vnd.voysisquery.v1+json'
+            };
+            return sendRequest(method, uri, entity, textHeaders, sessionApiToken_.token);
         };
         if (skipCheckSessionToken) {
             return sendRequestFunction(sessionApiToken_);
@@ -502,4 +534,3 @@
 
     return VoysisSession;
 });
-
