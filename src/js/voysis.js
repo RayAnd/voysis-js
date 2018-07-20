@@ -268,7 +268,7 @@
             'locale': locale,
             'queryType': 'text',
             'textQuery': {
-              'text': text
+                'text': text
             },
             'context': context || {}
         };
@@ -279,7 +279,7 @@
             queryEntity.userId = args_.userId;
         }
         return sendTextRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
-    };
+    }
 
     function checkAudioContext(audioContext) {
         audioContext_ = audioContext || audioContext_;
