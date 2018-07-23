@@ -416,22 +416,22 @@
       // text query part
       // when the UI is updated send the value from the input form to this function
       function startTextQuery(text) {
-        var host = voysisClient.getHost();
-        console.log('Sending query to: ', host);
-        if (host && host != '') {
-          voysisClient.info('Starting...');
-          var voysisSession = voysisClient.getVoysisSession();
-          voysisSession.sendTextQuery(text, 'en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId()).then(function (queryResults) {
-            lastQuery = queryResults;
-            console.log("Query results: ", queryResults);
-            if (queryResults.context) {
-              voysisClient.setPreviousQueryContext(queryResults.context);
-            }
-            if (queryResult.conversationId) {
-              voysisClient.setQueryConversationId(queryResults.conversationId);
-            }
-        });
-        }
+          var host = voysisClient.getHost();
+          console.log('Sending query to: ', host);
+          if (host && host != '') {
+              voysisClient.info('Starting...');
+              var voysisSession = voysisClient.getVoysisSession();
+              voysisSession.sendTextQuery(text, 'en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId()).then(function (queryResults) {
+              lastQuery = queryResults;
+              console.log("Query results: ", queryResults);
+              if (queryResults.context) {
+                  voysisClient.setPreviousQueryContext(queryResults.context);
+              }
+              if (queryResult.conversationId) {
+                  voysisClient.setQueryConversationId(queryResults.conversationId);
+              }
+              });
+          }
       }
 
       function stopQuery() {
