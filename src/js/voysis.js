@@ -107,7 +107,7 @@
         if (args_.userId) {
             queryEntity.userId = args_.userId;
         }
-        return sendTextRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
+        return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, true);
     }
 
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
@@ -278,7 +278,7 @@
         if (args_.userId) {
             queryEntity.userId = args_.userId;
         }
-        return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
+        return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, false);
     }
 
     function checkAudioContext(audioContext) {
@@ -366,28 +366,14 @@
         callFunction(callback, callbackArg);
     }
 
-    function sendAudioRequest(method, uri, entity, skipCheckSessionToken) {
+    function sendEntityRequest(method, uri, entity, skipCheckSessionToken, use_vad) {
         var sendRequestFunction = function () {
             var audioHeaders = {
                 'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
-                'X-Voysis-Ignore-Vad': false,
+                'X-Voysis-Ignore-Vad': use_vad,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
             return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token);
-        };
-        if (skipCheckSessionToken) {
-            return sendRequestFunction(sessionApiToken_);
-        }
-        return checkSessionToken().then(sendRequestFunction);
-    }
-    function sendTextRequest(method, uri, entity, skipCheckSessionToken) {
-        var sendRequestFunction = function () {
-            var textHeaders = {
-                'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
-                'X-Voysis-Ignore-Vad': true,
-                'Accept': 'application/vnd.voysisquery.v1+json'
-            };
-            return sendRequest(method, uri, entity, textHeaders, sessionApiToken_.token);
         };
         if (skipCheckSessionToken) {
             return sendRequestFunction(sessionApiToken_);
