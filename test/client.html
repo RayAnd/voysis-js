@@ -421,7 +421,7 @@
         if (host && host != '') {
           voysisClient.info('Starting...');
           var voysisSession = voysisClient.getVoysisSession();
-          voysisSession.createTextQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), text).then(function (queryResults) {
+          voysisSession.sendTextQuery(text, 'en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId()).then(function (queryResults) {
             lastQuery = queryResults;
             console.log("Query results: ", queryResults);
             if (queryResults.context) {

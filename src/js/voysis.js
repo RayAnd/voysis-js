@@ -92,6 +92,24 @@
         recordDuration('userStop');
     };
 
+    VoysisSession.prototype.sendTextQuery = function (text, locale, context, conversationId, skipCheckSessionToken) {
+        var queryEntity = {
+                        'locale': locale,
+                        'queryType': 'text',
+                        'textQuery': {
+                            'text': text
+                        },
+                        'context': context || {}
+        };
+        if (conversationId) {
+            queryEntity.conversationId = conversationId;
+        }
+        if (args_.userId) {
+            queryEntity.userId = args_.userId;
+        }
+        return sendTextRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
+    }
+
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
         return this.createAudioQuery(locale, context, conversationId, audioContext).then(this.streamAudio);
     };
@@ -261,24 +279,6 @@
             queryEntity.userId = args_.userId;
         }
         return sendAudioRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
-    }
-
-    function sendCreateTextQueryRequest(locale, context, conversationId, skipCheckSessionToken, text) {
-        var queryEntity = {
-            'locale': locale,
-            'queryType': 'text',
-            'textQuery': {
-                'text': text
-            },
-            'context': context || {}
-        };
-        if (conversationId) {
-            queryEntity.conversationId = conversationId;
-        }
-        if (args_.userId) {
-            queryEntity.userId = args_.userId;
-        }
-        return sendTextRequest('POST', '/queries', queryEntity, skipCheckSessionToken);
     }
 
     function checkAudioContext(audioContext) {
