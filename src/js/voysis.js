@@ -94,12 +94,12 @@
 
     VoysisSession.prototype.sendTextQuery = function (text, locale, context, conversationId, skipCheckSessionToken) {
         var queryEntity = {
-                        'locale': locale,
-                        'queryType': 'text',
-                        'textQuery': {
-                            'text': text
-                        },
-                        'context': context || {}
+            'locale': locale,
+            'queryType': 'text',
+            'textQuery': {
+                'text': text
+            },
+            'context': context || {}
         };
         if (conversationId) {
             queryEntity.conversationId = conversationId;
@@ -108,7 +108,7 @@
             queryEntity.userId = args_.userId;
         }
         return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, true);
-    }
+    };
 
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
         return this.createAudioQuery(locale, context, conversationId, audioContext).then(this.streamAudio);
