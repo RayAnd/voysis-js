@@ -422,14 +422,14 @@
               voysisClient.info('Starting...');
               var voysisSession = voysisClient.getVoysisSession();
               voysisSession.sendTextQuery(text, 'en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId()).then(function (queryResults) {
-              lastQuery = queryResults;
-              console.log("Query results: ", queryResults);
-              if (queryResults.context) {
-                  voysisClient.setPreviousQueryContext(queryResults.context);
-              }
-              if (queryResult.conversationId) {
-                  voysisClient.setQueryConversationId(queryResults.conversationId);
-              }
+                  lastQuery = queryResults;
+                  console.log("Query results: ", queryResults);
+                  if (queryResults.context) {
+                      voysisClient.setPreviousQueryContext(queryResults.context);
+                  }
+                  if (queryResult.conversationId) {
+                      voysisClient.setQueryConversationId(queryResults.conversationId);
+                  }
               });
           }
       }
