@@ -366,11 +366,11 @@
         callFunction(callback, callbackArg);
     }
 
-    function sendEntityRequest(method, uri, entity, skipCheckSessionToken, use_vad) {
+    function sendEntityRequest(method, uri, entity, skipCheckSessionToken, ignore_vad) {
         var sendRequestFunction = function () {
             var audioHeaders = {
                 'X-Voysis-Audio-Profile-Id': args_.audioProfileId,
-                'X-Voysis-Ignore-Vad': use_vad,
+                'X-Voysis-Ignore-Vad': ignore_vad,
                 'Accept': 'application/vnd.voysisquery.v1+json'
             };
             return sendRequest(method, uri, entity, audioHeaders, sessionApiToken_.token);
