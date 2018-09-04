@@ -464,6 +464,16 @@
                   sendButton.classList.remove('is-active');
                   voysisClient.finished('Query complete.');
                   $('#queryResult').html(JSON.stringify(queryResults, null, 4));
+              }).catch(function (error) {
+                console.error(error);
+                sendButton.classList.remove('is-active');
+                if (error.responseCode && error.responseCode == 403) {
+                      voysisClient.error('Authentication Required');
+                      voysisClient.clearRefreshToken();
+                      $('#gettingStartedModal').addClass('is-active');
+                  } else {
+                      voysisClient.error('Query error: ' + error.message);
+                  }
               });
           }
       }

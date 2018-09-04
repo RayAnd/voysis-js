@@ -92,7 +92,7 @@
         recordDuration('userStop');
     };
 
-    VoysisSession.prototype.sendTextQuery = function (text, locale, context, conversationId, skipCheckSessionToken) {
+    VoysisSession.prototype.sendTextQuery = function (text, locale, context, conversationId) {
         var queryEntity = {
             'locale': locale,
             'queryType': 'text',
@@ -107,7 +107,7 @@
         if (args_.userId) {
             queryEntity.userId = args_.userId;
         }
-        return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, true);
+        return sendEntityRequest('POST', '/queries', queryEntity, false, true);
     };
 
     VoysisSession.prototype.sendAudioQuery = function (locale, context, conversationId, audioContext) {
