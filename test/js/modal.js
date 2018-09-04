@@ -1,3 +1,7 @@
+$(".show-text-modal").click(function() {
+  $("#textinputModal").addClass("is-active");
+});
+
 $(".show-feedback-modal").click(function() {
   $("#feedbackModal").addClass("is-active"); 
 });
