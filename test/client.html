@@ -29,6 +29,11 @@
               <img src="i/js-tester/icon-settings.svg" title="Settings" alt="Settings">
             </span>
           </a>
+          <a class="navbar-item show-feedback-modal">
+          <span class="icon">
+            <img src="i/js-tester/icon-feedback.svg">
+          </span>
+          </a>
             <a class="navbar-item" onclick="toggleHelp()">
             <span class="icon">
               <img src="i/js-tester/icon-help.svg" title="Help" alt="Help">
@@ -102,10 +107,12 @@
               <div class="column is-10-desktop" id="statusMessage">
                 <p>Tap mic to talk.</p>
               </div>
-              <div class="column is-2-desktop">
-                <div class="buttons is-right">
-                  <a class="button is-small show-feedback-modal">Feedback</a>
-                </div>
+              <div class="column is-2-desktop is-right">
+                <a class="show-text-modal">
+                  <span class="icon">
+                    <img src="i/js-tester/icon-keyboard.svg">
+                  </span>
+                </a>
               </div>
             </div>
           </div>
@@ -115,6 +122,31 @@
     </div>
   </div>
   <!-- End Fixed bottom -->
+
+  <!-- Modal - Text input -->
+  <div id="textinputModal" class="modal fadeInUp">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+
+      <header class="modal-card-head">
+        <h2 class="modal-card-title">Text input</h2>
+        <button class="delete modal-card-close" aria-label="close"></button>
+      </header>
+
+      <section class="modal-card-body">
+        <div class="field">
+          <div class="control">
+            <textarea rows="1" cols="50" id="text_query_input" class="textarea" type="text" placeholder="Text query"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <footer class="modal-card-foot" data-target="sendText">
+        <button class="button is-small is-sendTxt-button">Send</button>
+      </footer>
+
+    </div>
+  </div>
 
   <!-- Modal - Feedback -->
   <div id="feedbackModal" class="modal fadeInUp">
@@ -413,13 +445,12 @@
           }
       }
 
-      // text query part
-      // when the UI is updated send the value from the input form to this function
-      function startTextQuery(text) {
+      function startTextQuery(text, sendButton) {
           var host = voysisClient.getHost();
           console.log('Sending query to: ', host);
           if (host && host != '') {
-              voysisClient.info('Starting...');
+              voysisClient.info('Sending...');
+              $("#textinputModal").removeClass("is-active");
               var voysisSession = voysisClient.getVoysisSession();
               voysisSession.sendTextQuery(text, 'en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId()).then(function (queryResults) {
                   lastQuery = queryResults;
@@ -429,6 +460,19 @@
                   }
                   if (queryResult.conversationId) {
                       voysisClient.setQueryConversationId(queryResults.conversationId);
+                  }
+                  sendButton.classList.remove('is-active');
+                  voysisClient.finished('Query complete.');
+                  $('#queryResult').html(JSON.stringify(queryResults, null, 4));
+              }).catch(function (error) {
+                console.error(error);
+                sendButton.classList.remove('is-active');
+                if (error.responseCode && error.responseCode == 403) {
+                      voysisClient.error('Authentication Required');
+                      voysisClient.clearRefreshToken();
+                      $('#gettingStartedModal').addClass('is-active');
+                  } else {
+                      voysisClient.error('Query error: ' + error.message);
                   }
               });
           }
