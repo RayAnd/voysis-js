@@ -75,12 +75,10 @@
 
     VoysisSession.isStreamingAudioSupported = function () {
         // Look for a getUserMedia method for the current platform
-        if (AudioContext &&
+        return !!(AudioContext &&
             (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
-                (navigator.mediaDevices && navigator.mediaDevices.getUserMedia))) {
-            return true;
-        }
-        return false;
+                (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)));
+
     };
 
     VoysisSession.prototype.issueAppToken = function () {
@@ -115,9 +113,10 @@
     };
 
     VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
-        checkAudioContext(audioContext);
-        queryDurations_.clear();
-        return sendCreateAudioQueryRequest(locale, context, conversationId, false);
+        return checkAudioContext(audioContext).then(function () {
+            queryDurations_.clear();
+            return sendCreateAudioQueryRequest(locale, context, conversationId, false);
+        });
     };
 
     VoysisSession.prototype.streamAudio = function (audioQueryResponse, vadStopCallback) {
@@ -144,7 +143,7 @@
                         // if the websocket has been closed, then stop recording and sending audio
                         if (isWebSocketOpen()) {
                             var inputArray = audioProcessingEvent.inputBuffer.getChannelData(0);
-                            if (audioContext_.sampleRate != DESIRED_SAMPLING_RATE) {
+                            if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
                                 inputArray = interpolateArray(inputArray, DESIRED_SAMPLING_RATE, audioContext_.sampleRate);
                             }
                             var outputBuffer = convertFloatsTo16BitPCM(inputArray);
@@ -292,8 +291,11 @@
             }
         }
         if (audioContext_.state === 'suspended') {
-            audioContext_.resume();
+            return audioContext_.resume();
         }
+        return new Promise(function (resolve) {
+            resolve();
+        });
     }
 
     function isWebSocketOpen() {
@@ -322,7 +324,7 @@
                 };
                 webSocket_.onclose = function (event) {
                     debug('WebSocket onclose');
-                    if (event.code == 1006) {
+                    if (event.code === 1006) {
                         reject(new Error('The WebSocket closed abnormally: ' + event.reason));
                     }
                 };
@@ -336,14 +338,14 @@
         debug('WebSocket onmessage: ', msg);
         var callback;
         var callbackArg = msg.entity;
-        if (msg.type == 'response') {
+        if (msg.type === 'response') {
             if (msg.responseCode >= 200 && msg.responseCode < 300) {
                 callback = getCallback(msg.requestId);
             } else {
                 callback = getCallback(msg.requestId, true);
                 callbackArg = {responseCode: msg.responseCode, responseMessage: msg.responseMessage};
             }
-        } else if (msg.type == 'notification') {
+        } else if (msg.type === 'notification') {
             switch (msg.notificationType) {
                 case VAD_STOP_NOTIFICATION:
                     recordDuration('vad');

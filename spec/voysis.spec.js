@@ -32,7 +32,7 @@ describe('Test issue app token', function () {
         const mockServer = new Mock.Server(`wss://${websocketHost}/websocketapi`);
         mockServer.on('message', requestJson => {
             const request = JSON.parse(requestJson);
-            if (request.restUri === '/tokens' && request.headers.Authorization == `Bearer ${refreshToken}`) {
+            if (request.restUri === '/tokens' && request.headers.Authorization === `Bearer ${refreshToken}`) {
                 const response = {
                     requestId: request.requestId,
                     responseCode: 401,
@@ -67,7 +67,7 @@ describe('Test issue app token', function () {
         };
         mockServer.on('message', requestJson => {
             const request = JSON.parse(requestJson);
-            if (request.restUri === '/tokens' && request.headers.Authorization == `Bearer ${refreshToken}`) {
+            if (request.restUri === '/tokens' && request.headers.Authorization === `Bearer ${refreshToken}`) {
                 const response = {
                     entity: expectedAppToken,
                     requestId: request.requestId,

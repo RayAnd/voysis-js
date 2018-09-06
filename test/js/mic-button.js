@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
       $el.addEventListener('click', function () {
         if (!$el.classList.contains('is-active')) {
           $el.classList.add('is-active');
-          text = document.getElementById('text_query_input').value
+          var text = document.getElementById('text_query_input').value;
           startTextQuery(text, $el)
         } else {
           $el.classList.remove('is-active');

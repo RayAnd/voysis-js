@@ -63,7 +63,7 @@
                         var msg = arguments[i];
                         if (typeof msg !== 'undefined') {
                             if (typeof  msg === 'function') {
-                                msg = Function.prototype.toString(msg);
+                                msg = Function.prototype.toString();
                             } else if (typeof  msg !== 'string') {
                                 msg = JSON.stringify(msg);
                             }
