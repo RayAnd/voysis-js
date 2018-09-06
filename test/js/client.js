@@ -59,7 +59,7 @@
             return audioProfileId;
         }
 
-        var voysisClient = {
+        return {
             getAudioProfileId: function () {
                 return audioProfileId_;
             },
@@ -112,27 +112,27 @@
                 sessionChanged_ = true;
             },
 
-            clearRefreshToken: function() {
+            clearRefreshToken: function () {
                 refreshToken_ = undefined;
                 localStorage.removeItem(REFRESH_TOKEN);
                 sessionChanged_ = true;
             },
 
-            getEmail: function() {
+            getEmail: function () {
                 return email_;
             },
 
-            setEmail: function(email) {
+            setEmail: function (email) {
                 email_ = email;
                 localStorage.setItem(EMAIL, email);
                 sessionChanged_ = true;
             },
 
-            getUserId: function() {
+            getUserId: function () {
                 return userId_;
             },
 
-            setUserId: function(userId) {
+            setUserId: function (userId) {
                 userId_ = userId;
                 localStorage.setItem(USER_ID, userId);
                 sessionChanged_ = true;
@@ -183,8 +183,6 @@
                 this.showStatus('is-success', message);
             }
         };
-
-        return voysisClient;
     }
 
     if (typeof(window.voysisClient) === 'undefined') {
