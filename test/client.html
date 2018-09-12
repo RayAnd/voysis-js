@@ -294,6 +294,10 @@
               voysisClient.error('Browser not supported');
           } else {
               var hostname = getUrlParameter('hostname');
+              var refreshToken = getUrlParameter('refreshToken');
+              if (refreshToken) {
+                  voysisClient.setRefreshToken(refreshToken);
+              }
               var lastHostname = voysisClient.getHost();
               $('#gettingStartedEmail').val(voysisClient.getEmail());
               updateHostnameField(hostname || lastHostname);
