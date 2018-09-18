@@ -44,6 +44,7 @@
         var previousQueryContext_;
         var queryConversationId_;
         var sessionChanged_ = false;
+        var audioBufferSize_ = 4096;
 
         function createUuid() {
             function s4() {
@@ -138,6 +139,14 @@
                 sessionChanged_ = true;
             },
 
+            getAudioBufferSize: function () {
+                return audioBufferSize_;
+            },
+
+            setAudioBufferSize: function (audioBufferSize) {
+                audioBufferSize_ = audioBufferSize;
+            },
+
             getVoysisSession: function () {
                 if (!voysisSession_ || sessionChanged_) {
                     previousQueryContext_ = null;
@@ -148,6 +157,7 @@
                         debugEnabled: true,
                         streamingAudioDeadline: 10000,
                         autoSendDurations: true,
+                        audioBufferSize: audioBufferSize_,
                         userId: userId_
                     });
                     sessionChanged_ = false;

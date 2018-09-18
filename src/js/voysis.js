@@ -58,6 +58,7 @@
         args_.debugEnabled = args_.debugEnabled || false;
         args_.streamingAudioDeadline = args_.streamingAudioDeadline || 20000;
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
+        args_.audioBufferSize = args_.audioBufferSize || 4096;
         webSocket_ = null;
         callbacks_ = new Map();
         queryDurations_ = new Map();
@@ -126,9 +127,9 @@
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
                 try {
-                    debug('Recording at ', audioContext_.sampleRate, 'Hz');
+                    debug('Recording at ', audioContext_.sampleRate, 'Hz with a buffer size of ', args_.audioBufferSize);
                     var source = audioContext_.createMediaStreamSource(stream);
-                    var processor = audioContext_.createScriptProcessor(4096, 1, 1);
+                    var processor = audioContext_.createScriptProcessor(args_.audioBufferSize, 1, 1);
                     var stopStreaming = (function () {
                         processor.disconnect();
                         source.disconnect();

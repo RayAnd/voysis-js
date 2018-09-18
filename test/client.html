@@ -301,6 +301,10 @@
               var lastHostname = voysisClient.getHost();
               $('#gettingStartedEmail').val(voysisClient.getEmail());
               updateHostnameField(hostname || lastHostname);
+              var audioBufferSize = getUrlParameter('audioBufferSize');
+              if (audioBufferSize) {
+                  voysisClient.setAudioBufferSize(audioBufferSize);
+              }
               if (hostname && voysisClient.getRefreshToken()) {
                   voysisClient.getVoysisSession().issueAppToken().catch(function () {
                       $('#gettingStartedModal').addClass('is-active');
