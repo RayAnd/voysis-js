@@ -488,8 +488,8 @@
         newData[0] = data[0]; // for new allocation
         for (var i = 1; i < fitCount - 1; i++) {
             var tmp = i * springFactor;
-            var before = Number(Math.floor(tmp)).toFixed();
-            var after = Number(Math.ceil(tmp)).toFixed();
+            var before = ~~tmp; // Faster than Math.floor() on most mobile devices
+            var after = Math.ceil(tmp);
             var atPoint = tmp - before;
             newData[i] = linearInterpolate(data[before], data[after], atPoint);
         }
