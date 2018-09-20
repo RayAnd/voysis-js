@@ -5,51 +5,63 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link href="i/js-tester/favicon.ico" rel="shortcut icon" type="image/x-icon">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script src="../src/js/voysis.js"></script>
         <script src="js/client.js"></script>
     </head>
     <body>
         <div class="container-fluid">
-            <form>
+            <div id="audioQueryBlock">
+                <form>
+                    <div class="mt-2 row">
+                        <div class="col col-12 col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Hostname</span>
+                                </div>
+                                <input type="url" class="form-control" id="hostname" onchange="updateHost(this.value)">
+                            </div>
+                        </div>
+                        <div class="col col-12 col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Refresh Token</span>
+                                </div>
+                                <input type="text" class="form-control" id="refreshToken" onchange="updateRefreshToken(this.value)">
+                            </div>
+                        </div>
+                    </div>
+                </form>
                 <div class="mt-2 row">
-                    <div class="col col-12 col-md-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Hostname</span>
-                            </div>
-                            <input type="url" class="form-control" id="hostname" onchange="updateHost(this.value)">
-                        </div>
+                    <div class="col col-12 col-sm-6">
+                        <button id="startStreaming" type="button" class="btn btn-primary btn-block btn-lg"
+                                onclick="startStreaming()">
+                            Start Streaming
+                        </button>
                     </div>
-                    <div class="col col-12 col-md-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Refresh Token</span>
-                            </div>
-                            <input type="text" class="form-control" id="refreshToken" onchange="updateRefreshToken(this.value)">
-                        </div>
+                    <div class="col col-12 col-sm-6">
+                        <button id="clearMessages" type="button" class="btn btn-secondary btn-block btn-lg"
+                                onclick="clearMessages()">
+                            Clear Messages
+                        </button>
                     </div>
                 </div>
-            </form>
-            <div class="mt-2 row">
-                <div class="col col-12 col-sm-6">
-                    <button id="startStreaming" type="button" class="btn btn-primary btn-block btn-lg"
-                            onclick="startStreaming()">
-                        Start Streaming
-                    </button>
-                </div>
-                <div class="col col-12 col-sm-6">
-                    <button id="clearMessages" type="button" class="btn btn-secondary btn-block btn-lg"
-                            onclick="clearMessages()">
-                        Clear Messages
-                    </button>
+                <div class="mt-2 row">
+                    <div class="col">
+                        <h3>Log Messages</h3>
+                        <ul id="logMessages">
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <div class="mt-2 row">
-                <div class="col">
-                    <h3>Log Messages</h3>
-                    <ul id="logMessages">
-                    </ul>
-                </div>
+            <div class="jumbotron" id="noMicAccessMessage" style="display: none;">
+                <h1>No Microphone Permissions</h1>
+                <p>You have indicated that you do not want this page to access the microphone. Click one of the button below to see instructions on how to re-enable microphone access for some different browsers</p>
+                <p>
+                    <a class="btn btn-info btn-lg" href="https://support.google.com/chrome/answer/2693767?hl=en" role="button">Chrome</a>
+                    <a class="btn btn-info btn-lg" href="https://support.mozilla.org/en-US/questions/1168156" role="button">Firefox</a>
+                    <a class="btn btn-warning btn-lg" href="#" onclick="enableMicPermission();" role="button">Dismiss</a>
+                </p>
             </div>
         </div>
         <script>
@@ -80,12 +92,14 @@
                     console.error = console.log;
                 }
             }
+
             function clearMessages() {
                 var logList = document.getElementById('logMessages');
                 while (logList.firstChild) {
                     logList.removeChild(logList.firstChild);
                 }
             }
+
             function startStreaming() {
                 console.log('Using JS library version: ', VoysisSession.version);
                 voysisClient.getVoysisSession().sendAudioQuery('en-US', voysisClient.getPreviousQueryContext()).then(function (queryResult) {
@@ -98,18 +112,42 @@
                         console.log("No words were understood");
                     }
                 }).catch(function (error) {
-                    console.error("QUERY ERROR: ", error.message);
+                    console.error(error);
+                    console.error("QUERY ERROR: ", error.name, error.message);
+                    if (error.name === 'NotAllowedError') {
+                        disableMicPermission();
+                    }
                 });
             }
+
             function updateHost(host) {
                 voysisClient.setHost(host);
             }
+
             function updateRefreshToken(refreshToken) {
                 voysisClient.setRefreshToken(refreshToken);
             }
-            document.getElementById('hostname').value = voysisClient.getHost();
-            document.getElementById('refreshToken').value = voysisClient.getRefreshToken();
-            console.log('Browser User-Agent: ', window.navigator.userAgent);
+
+            function disableMicPermission() {
+                localStorage.setItem("voice_access", "denied");
+                $("#audioQueryBlock").hide();
+                $("#noMicAccessMessage").show();
+            }
+
+            function enableMicPermission() {
+                localStorage.removeItem("voice_access");
+                $("#audioQueryBlock").show();
+                $("#noMicAccessMessage").hide();
+            }
+
+            $(document).ready(function () {
+                $('#hostname').val(voysisClient.getHost());
+                $('#refreshToken').val(voysisClient.getRefreshToken());
+                console.log('Browser User-Agent: ', window.navigator.userAgent);
+                if (localStorage.getItem("voice_access") === "denied") {
+                    disableMicPermission();
+                }
+            });
         </script>
     </body>
 </html>
