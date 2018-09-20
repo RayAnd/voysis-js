@@ -415,11 +415,16 @@
               var voysisSession = voysisClient.getVoysisSession();
               var audioContext = voysisClient.getAudioContext();
               return voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
-                  voysisClient.warn('Listening...');
                   streaming = true;
                   return voysisSession.streamAudio(audioQueryResponse, function (notificationType) {
-                      reportStopStreaming();
-                      console.log("Vad Notification: ", notificationType);
+                      console.log("Notification: ", notificationType);
+                      switch (notificationType) {
+                          case 'recording_started':
+                              voysisClient.warn('Listening...');
+                              break;
+                          default:
+                              reportStopStreaming();
+                      }
                   });
               });
           }
