@@ -120,12 +120,13 @@
         });
     };
 
-    VoysisSession.prototype.streamAudio = function (audioQueryResponse, vadStopCallback) {
+    VoysisSession.prototype.streamAudio = function (audioQueryResponse, callback) {
         stopStreaming_ = false;
         queryDurations_.clear();
         var promise = new Promise(function (resolve, reject) {
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
+                var recordingCallbackSent = false;
                 try {
                     debug('Recording at ', audioContext_.sampleRate, 'Hz with a buffer size of ', args_.audioBufferSize);
                     var source = audioContext_.createMediaStreamSource(stream);
@@ -143,6 +144,10 @@
                     processor.onaudioprocess = function (audioProcessingEvent) {
                         // if the websocket has been closed, then stop recording and sending audio
                         if (isWebSocketOpen()) {
+                            if (!recordingCallbackSent) {
+                                callFunction(callback, 'recording_started');
+                                recordingCallbackSent = true;
+                            }
                             var inputArray = audioProcessingEvent.inputBuffer.getChannelData(0);
                             if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
                                 inputArray = interpolateArray(inputArray, DESIRED_SAMPLING_RATE, audioContext_.sampleRate);
@@ -169,7 +174,7 @@
                     addCallbacks(VAD_STOP_CALLBACK_KEY, function (notificationType) {
                         clearTimeout(timeoutId);
                         stopStreaming();
-                        callFunction(vadStopCallback, notificationType);
+                        callFunction(callback, notificationType);
                     });
                 } catch (err) {
                     reject(err);
