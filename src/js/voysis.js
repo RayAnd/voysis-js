@@ -127,43 +127,49 @@
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
                 var recordingCallbackSent = false;
+                var streamingStopped = false;
                 try {
                     debug('Recording at ', audioContext_.sampleRate, 'Hz with a buffer size of ', args_.audioBufferSize);
                     var source = audioContext_.createMediaStreamSource(stream);
                     var processor = audioContext_.createScriptProcessor(args_.audioBufferSize, 1, 1);
                     var stopStreaming = (function () {
-                        processor.disconnect();
-                        source.disconnect();
-                        stream.getAudioTracks().forEach(function (track) {
-                            track.stop();
-                        });
-                        debug('Finished Streaming');
+                        if (!streamingStopped) {
+                            streamingStopped = true;
+                            processor.disconnect();
+                            source.disconnect();
+                            stream.getAudioTracks().forEach(function (track) {
+                                track.stop();
+                            });
+                            debug('Finished Streaming');
+                        }
                     });
                     source.connect(processor);
                     processor.connect(audioContext_.destination);
                     processor.onaudioprocess = function (audioProcessingEvent) {
                         // if the websocket has been closed, then stop recording and sending audio
-                        if (isWebSocketOpen()) {
-                            if (!recordingCallbackSent) {
-                                callFunction(callback, 'recording_started');
-                                recordingCallbackSent = true;
-                            }
-                            var inputArray = audioProcessingEvent.inputBuffer.getChannelData(0);
-                            if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
-                                inputArray = interpolateArray(inputArray, DESIRED_SAMPLING_RATE, audioContext_.sampleRate);
-                            }
-                            var outputBuffer = convertFloatsTo16BitPCM(inputArray);
-                            webSocket_.send(outputBuffer);
-                            if (stopStreaming_) {
-                                debug('Stopping streaming...');
-                                var byteArray = new Int8Array(1);
-                                byteArray[0] = 4;
-                                webSocket_.send(byteArray);
+                        if (!streamingStopped) {
+                            if (isWebSocketOpen()) {
+                                if (!recordingCallbackSent) {
+                                    callFunction(callback, 'recording_started');
+                                    recordingCallbackSent = true;
+                                }
+                                var inputArray = audioProcessingEvent.inputBuffer.getChannelData(0);
+                                if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
+                                    inputArray = interpolateArray(inputArray, DESIRED_SAMPLING_RATE, audioContext_.sampleRate);
+                                }
+                                var outputBuffer = convertFloatsTo16BitPCM(inputArray);
+                                webSocket_.send(outputBuffer);
+                                if (stopStreaming_) {
+                                    debug('Stopping streaming...');
+                                    var byteArray = new Int8Array(1);
+                                    byteArray[0] = 4;
+                                    webSocket_.send(byteArray);
+                                    stopStreaming();
+                                }
+                            } else {
                                 stopStreaming();
+                                reject(new Error('Connection to server closed before query response sent'));
                             }
-                        } else {
-                            stopStreaming();
-                            reject(new Error('Connection to server closed before query response sent'));
                         }
                     };
                     processor.onerror = reject;
