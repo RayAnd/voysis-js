@@ -143,6 +143,7 @@
                             debug('Finished Streaming');
                         }
                     });
+                    var previousUnusedAudioData = new Float32Array(0);
                     source.connect(processor);
                     processor.connect(audioContext_.destination);
                     processor.onaudioprocess = function (audioProcessingEvent) {
@@ -153,12 +154,17 @@
                                     callFunction(callback, 'recording_started');
                                     recordingCallbackSent = true;
                                 }
-                                var inputArray = audioProcessingEvent.inputBuffer.getChannelData(0);
+                                var audioDataArray = audioProcessingEvent.inputBuffer.getChannelData(0);
                                 if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
-                                    inputArray = interpolateArray(inputArray, DESIRED_SAMPLING_RATE, audioContext_.sampleRate);
+                                    var dataToDownsample = new Float32Array(audioDataArray.length + previousUnusedAudioData.length);
+                                    dataToDownsample.set(previousUnusedAudioData);
+                                    dataToDownsample.set(audioDataArray, previousUnusedAudioData.length);
+                                    var downsampleResult = downsample(dataToDownsample, audioContext_.sampleRate, DESIRED_SAMPLING_RATE);
+                                    audioDataArray = downsampleResult[0];
+                                    previousUnusedAudioData = downsampleResult[1];
                                 }
-                                var outputBuffer = convertFloatsTo16BitPCM(inputArray);
-                                webSocket_.send(outputBuffer);
+                                var pcmBuffer = convertFloatsTo16BitPcm(audioDataArray);
+                                webSocket_.send(pcmBuffer);
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
                                     var byteArray = new Int8Array(1);
@@ -491,38 +497,35 @@
         return callback;
     }
 
-    // for changing the sampling rate, data,
-    function interpolateArray(data, newSampleRate, oldSampleRate) {
-        var fitCount = Math.round(data.length * (newSampleRate / oldSampleRate));
-        var newData = new Float32Array(fitCount);
-        var springFactor = Number((data.length - 1) / (fitCount - 1));
-        newData[0] = data[0]; // for new allocation
-        for (var i = 1; i < fitCount - 1; i++) {
-            var tmp = i * springFactor;
-            var before = ~~tmp; // Faster than Math.floor() on most mobile devices
-            var after = Math.ceil(tmp);
-            var atPoint = tmp - before;
-            newData[i] = linearInterpolate(data[before], data[after], atPoint);
+    function downsample(oldSamples, oldSampleRate, newSampleRate) {
+        var sampleRatio = oldSampleRate / newSampleRate;
+        var nNewSamples = ~~(oldSamples.length / sampleRatio) - 1;
+        var newSamples = new Float32Array(nNewSamples);
+        for (var sampleIndex = 1; sampleIndex <= nNewSamples; sampleIndex++) {
+            var oldSampleIndex = (sampleRatio * sampleIndex);
+            var beforeIndex = ~~(oldSampleIndex - 1);
+            var afterIndex = ~~oldSampleIndex;
+            var atPoint = oldSampleIndex - beforeIndex;
+            newSamples[sampleIndex - 1] = linearInterpolate(oldSamples[beforeIndex], oldSamples[afterIndex], atPoint);
         }
-        newData[fitCount - 1] = data[data.length - 1]; // for new allocation
-        return newData;
+        var lastUsedIndex = ~~(sampleRatio * nNewSamples);
+        var unusedSamples = (oldSamples.length - lastUsedIndex) ? oldSamples.slice(lastUsedIndex) : new Float32Array(0);
+        return [newSamples, unusedSamples];
     }
 
-    function linearInterpolate(before, after, atPoint) {
-        return before + (after - before) * atPoint;
+
+    function linearInterpolate(startValue, endValue, atPoint) {
+        return startValue + (endValue - startValue) * atPoint;
     }
 
-    // Converts an array with 32bit float values to
-    // a 16bit little-endian signed integer array.
-    function convertFloatsTo16BitPCM(floatArray) {
-        var intBuffer = new ArrayBuffer(floatArray.length * 2);
-        var intBufferView = new DataView(intBuffer);
-        for (var i = 0; i < floatArray.length; i++) {
+    function convertFloatsTo16BitPcm(floatArray) {
+        var output = new DataView(new ArrayBuffer(floatArray.length * 2));
+        for (var i = 0, len = floatArray.length; i < len; i++) {
             var floatVal = Math.max(-1, Math.min(1, floatArray[i]));
             var intVal = floatVal < 0 ? floatVal * 0x8000 : floatVal * 0x7FFF;
-            intBufferView.setInt16(i * 2, intVal, true);
+            output.setInt16(i * 2, intVal, true);
         }
-        return intBuffer;
+        return output.buffer;
     }
 
     function debug() {
