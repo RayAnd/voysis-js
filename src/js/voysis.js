@@ -25,11 +25,11 @@
     if (typeof define === 'function' && define.amd) {
         define([], factory);
     } else if (typeof module !== 'undefined' && module.exports) {
-        module.exports = factory(global);
+        module.exports = factory();
     } else {
-        global.VoysisSession = factory(global);
+        global.VoysisSession = factory();
     }
-})(this, function (global) {
+})(this, function () {
     'use strict';
     const DESIRED_SAMPLING_RATE = 16000;
     const STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
@@ -38,7 +38,7 @@
     const VAD_STOP_NOTIFICATION = 'vad_stop';
     const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
     const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
-    const AudioContext = global.AudioContext || global.webkitAudioContext;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
     var args_ = {};
     var webSocket_;
