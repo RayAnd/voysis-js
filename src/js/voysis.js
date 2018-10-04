@@ -144,8 +144,6 @@
                         }
                     });
                     var previousUnusedAudioData = new Float32Array(0);
-                    source.connect(processor);
-                    processor.connect(audioContext_.destination);
                     processor.onaudioprocess = function (audioProcessingEvent) {
                         // if the websocket has been closed, then stop recording and sending audio
                         if (!streamingStopped) {
@@ -188,6 +186,8 @@
                         stopStreaming();
                         callFunction(callback, notificationType);
                     });
+                    source.connect(processor);
+                    processor.connect(audioContext_.destination);
                 } catch (err) {
                     reject(err);
                 }
@@ -324,9 +324,7 @@
         // If the websocket is already open, don't do anything
         if (isWebSocketOpen()) {
             debug('WebSocket already open');
-            return new Promise(function (resolve) {
-                resolve();
-            });
+            return Promise.resolve();
         } else {
             return new Promise(function (resolve, reject) {
                 debug('Creating WebSocket');
@@ -420,9 +418,7 @@
             return issueAppToken();
         } else {
             debug('Session token still valid');
-            return new Promise(function (resolve) {
-                resolve(sessionApiToken_);
-            });
+            return Promise.resolve(sessionApiToken_);
         }
     }
 
