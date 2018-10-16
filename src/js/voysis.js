@@ -31,7 +31,6 @@
     }
 })(this, function () {
     'use strict';
-    const DESIRED_SAMPLING_RATE = 16000;
     const STREAM_AUDIO_CALLBACK_KEY = 'AudioStreamCallback';
     const VAD_STOP_CALLBACK_KEY = 'VadStopCallback';
     const ERROR_CALLBACK_KEY_POSTFIX = '.error';
@@ -116,7 +115,7 @@
     VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
         return checkAudioContext(audioContext).then(function () {
             queryDurations_.clear();
-            return sendCreateAudioQueryRequest(locale, context, conversationId, false);
+            return sendCreateAudioQueryRequest(locale, context, conversationId, false, audioContext_.sampleRate);
         });
     };
 
@@ -143,7 +142,6 @@
                             debug('Finished Streaming');
                         }
                     });
-                    var previousUnusedAudioData = new Float32Array(0);
                     processor.onaudioprocess = function (audioProcessingEvent) {
                         // if the websocket has been closed, then stop recording and sending audio
                         if (!streamingStopped) {
@@ -153,16 +151,7 @@
                                     recordingCallbackSent = true;
                                 }
                                 var audioDataArray = audioProcessingEvent.inputBuffer.getChannelData(0);
-                                if (audioContext_.sampleRate !== DESIRED_SAMPLING_RATE) {
-                                    var dataToDownsample = new Float32Array(audioDataArray.length + previousUnusedAudioData.length);
-                                    dataToDownsample.set(previousUnusedAudioData);
-                                    dataToDownsample.set(audioDataArray, previousUnusedAudioData.length);
-                                    var downsampleResult = downsample(dataToDownsample, audioContext_.sampleRate, DESIRED_SAMPLING_RATE);
-                                    audioDataArray = downsampleResult[0];
-                                    previousUnusedAudioData = downsampleResult[1];
-                                }
-                                var pcmBuffer = convertFloatsTo16BitPcm(audioDataArray);
-                                webSocket_.send(pcmBuffer);
+                                webSocket_.send(audioDataArray.buffer);
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
                                     var byteArray = new Int8Array(1);
@@ -280,12 +269,12 @@
         return error;
     }
 
-    function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken) {
+    function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken, samplingRate) {
         var queryEntity = {
             'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
-                'mimeType': 'audio/pcm;bits=16;rate=' + DESIRED_SAMPLING_RATE
+                'mimeType': 'audio/pcm;bits=32;rate=' + samplingRate
             },
             'context': context || {}
         };
@@ -491,37 +480,6 @@
         callbacks_.delete(callbackKey);
         callbacks_.delete(callbackKey + ERROR_CALLBACK_KEY_POSTFIX);
         return callback;
-    }
-
-    function downsample(oldSamples, oldSampleRate, newSampleRate) {
-        var sampleRatio = oldSampleRate / newSampleRate;
-        var nNewSamples = ~~(oldSamples.length / sampleRatio) - 1;
-        var newSamples = new Float32Array(nNewSamples);
-        for (var sampleIndex = 1; sampleIndex <= nNewSamples; sampleIndex++) {
-            var oldSampleIndex = (sampleRatio * sampleIndex);
-            var beforeIndex = ~~(oldSampleIndex - 1);
-            var afterIndex = ~~oldSampleIndex;
-            var atPoint = oldSampleIndex - beforeIndex;
-            newSamples[sampleIndex - 1] = linearInterpolate(oldSamples[beforeIndex], oldSamples[afterIndex], atPoint);
-        }
-        var lastUsedIndex = ~~(sampleRatio * nNewSamples);
-        var unusedSamples = (oldSamples.length - lastUsedIndex) ? oldSamples.slice(lastUsedIndex) : new Float32Array(0);
-        return [newSamples, unusedSamples];
-    }
-
-
-    function linearInterpolate(startValue, endValue, atPoint) {
-        return startValue + (endValue - startValue) * atPoint;
-    }
-
-    function convertFloatsTo16BitPcm(floatArray) {
-        var output = new DataView(new ArrayBuffer(floatArray.length * 2));
-        for (var i = 0, len = floatArray.length; i < len; i++) {
-            var floatVal = Math.max(-1, Math.min(1, floatArray[i]));
-            var intVal = floatVal < 0 ? floatVal * 0x8000 : floatVal * 0x7FFF;
-            output.setInt16(i * 2, intVal, true);
-        }
-        return output.buffer;
     }
 
     function debug() {
