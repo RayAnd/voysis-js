@@ -32,7 +32,7 @@
         const USER_ID = 'UserId';
         const localStorage = window.localStorage;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        var audioContext_;
+        var audioContext_ = null;
         var audioProfileId_ = localStorage.getItem(AUDIO_PROFILE_ID) || createAudioProfileId();
         var host_ = localStorage.getItem(HOST);
         var refreshToken_ = localStorage.getItem(REFRESH_TOKEN);

@@ -364,7 +364,7 @@
 
       function resetState() {
           resetFeedback();
-          $('#queryResult').html('The response will be displayed here.');
+          $('#queryResult').text('The response will be displayed here.');
           voysisClient.finished('Tap mic to talk.');
       }
 
@@ -456,20 +456,22 @@
                   }
                   button.classList.remove('is-active');
                   voysisClient.finished('Query complete.');
-                  $('#queryResult').html(JSON.stringify(queryResults, null, 4));
+                  $('#queryResult').text(JSON.stringify(queryResults, null, 4));
                   if (help != null) {
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
                   }
               }).catch(function (error) {
-                  console.error(error);
-                  button.classList.remove('is-active');
-                  if (error.responseCode && error.responseCode === 403) {
-                      voysisClient.error('Authentication Required');
-                      voysisClient.clearRefreshToken();
-                      $('#gettingStartedModal').addClass('is-active');
-                  } else {
-                      voysisClient.error('Query error: ' + error.message);
+                  if (error) {
+                      console.error(error);
+                      button.classList.remove('is-active');
+                      if (error.responseCode && error.responseCode === 403) {
+                          voysisClient.error('Authentication Required');
+                          voysisClient.clearRefreshToken();
+                          $('#gettingStartedModal').addClass('is-active');
+                      } else {
+                          voysisClient.error('Query error: ' + error.message);
+                      }
                   }
               });
           } else {
