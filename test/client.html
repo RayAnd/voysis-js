@@ -462,9 +462,9 @@
                       help.removeClass('is-active');
                   }
               }).catch(function (error) {
+                  button.classList.remove('is-active');
                   if (error) {
                       console.error(error);
-                      button.classList.remove('is-active');
                       if (error.responseCode && error.responseCode === 403) {
                           voysisClient.error('Authentication Required');
                           voysisClient.clearRefreshToken();
@@ -472,6 +472,9 @@
                       } else {
                           voysisClient.error('Query error: ' + error.message);
                       }
+                  } else {
+                      console.error('Unknown error occurred');
+                      voysisClient.error('Unknown error occurred');
                   }
               });
           } else {
