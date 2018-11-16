@@ -58,6 +58,7 @@
         args_.streamingAudioDeadline = args_.streamingAudioDeadline || 20000;
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
         args_.audioBufferSize = args_.audioBufferSize || 4096;
+        args_.ignoreVad = args_.ignoreVad || false;
         webSocket_ = null;
         callbacks_ = new Map();
         queryDurations_ = new Map();
@@ -284,7 +285,7 @@
         if (args_.userId) {
             queryEntity.userId = args_.userId;
         }
-        return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, false);
+        return sendEntityRequest('POST', '/queries', queryEntity, skipCheckSessionToken, args_.ignoreVad);
     }
 
     function checkAudioContext(audioContext) {

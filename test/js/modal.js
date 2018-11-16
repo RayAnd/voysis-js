@@ -7,8 +7,8 @@ $(".show-feedback-modal").click(function() {
 });
 
 $(".show-settings-modal").click(function() {
-  $('#gettingStartedModal').find('[data-mode=full]').show();
-  $("#gettingStartedModal").addClass("is-active");
+  $("#settings-modal").addClass("is-active");
+  $("#vad-enabled-checkbox").prop('checked', voysisClient.getIgnoreVad())
 });
 
 $(".modal-card-close").click(function() {
