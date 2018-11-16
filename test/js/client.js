@@ -45,6 +45,7 @@
         var queryConversationId_;
         var sessionChanged_ = false;
         var audioBufferSize_ = 4096;
+        var ignoreVad = false;
 
         function createUuid() {
             function s4() {
@@ -129,6 +130,15 @@
                 sessionChanged_ = true;
             },
 
+            setIgnoreVad: function (enabled) {
+                ignoreVad = enabled;
+                sessionChanged_ = true;
+            },
+
+            getIgnoreVad: function() {
+                return ignoreVad;
+            },
+
             getUserId: function () {
                 return userId_;
             },
@@ -158,7 +168,8 @@
                         streamingAudioDeadline: 10000,
                         autoSendDurations: true,
                         audioBufferSize: audioBufferSize_,
-                        userId: userId_
+                        userId: userId_,
+                        ignoreVad: ignoreVad
                     });
                     sessionChanged_ = false;
                 }
@@ -194,7 +205,7 @@
             }
         };
     }
-
+    
     if (typeof(window.voysisClient) === 'undefined') {
         window.voysisClient = VoysisClient();
     }
