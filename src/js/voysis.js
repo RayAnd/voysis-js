@@ -154,7 +154,7 @@
                                 var inBuf = audioProcessingEvent.inputBuffer;
                                 if (inBuf.length > 0) {
                                     var audioDataArray = new Float32Array(
-                                            inBuf.getChannelData(0)
+                                        inBuf.getChannelData(0)
                                     );
                                     webSocket_.send(audioDataArray.buffer);
                                 }
