@@ -151,7 +151,9 @@
                                     callFunction(callback, 'recording_started');
                                     recordingCallbackSent = true;
                                 }
-                                var audioDataArray = audioProcessingEvent.inputBuffer.getChannelData(0);
+                                var inBuf = audioProcessingEvent.inputBuffer;
+                                var audioDataArray = new Float32Array(inBuf.length);
+                                inBuf.copyFromChannel(audioDataArray, 0);
                                 webSocket_.send(audioDataArray.buffer);
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
