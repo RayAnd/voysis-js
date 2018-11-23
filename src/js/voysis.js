@@ -153,8 +153,9 @@
                                 }
                                 var inBuf = audioProcessingEvent.inputBuffer;
                                 if (inBuf.length > 0) {
-                                    var audioDataArray = new Float32Array(inBuf.length);
-                                    inBuf.copyFromChannel(audioDataArray, 0);
+                                    var audioDataArray = new Float32Array(
+                                            inBuf.getChannelData(0)
+                                    );
                                     webSocket_.send(audioDataArray.buffer);
                                 }
                                 if (stopStreaming_) {
