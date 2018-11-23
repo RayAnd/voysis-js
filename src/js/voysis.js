@@ -151,8 +151,13 @@
                                     callFunction(callback, 'recording_started');
                                     recordingCallbackSent = true;
                                 }
-                                var audioDataArray = audioProcessingEvent.inputBuffer.getChannelData(0);
-                                webSocket_.send(audioDataArray.buffer);
+                                var inBuf = audioProcessingEvent.inputBuffer;
+                                if (inBuf.length > 0) {
+                                    var audioDataArray = new Float32Array(
+                                        inBuf.getChannelData(0)
+                                    );
+                                    webSocket_.send(audioDataArray.buffer);
+                                }
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
                                     var byteArray = new Int8Array(1);
