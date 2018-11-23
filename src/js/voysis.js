@@ -152,9 +152,11 @@
                                     recordingCallbackSent = true;
                                 }
                                 var inBuf = audioProcessingEvent.inputBuffer;
-                                var audioDataArray = new Float32Array(inBuf.length);
-                                inBuf.copyFromChannel(audioDataArray, 0);
-                                webSocket_.send(audioDataArray.buffer);
+                                if (inBuf.length > 0) {
+                                    var audioDataArray = new Float32Array(inBuf.length);
+                                    inBuf.copyFromChannel(audioDataArray, 0);
+                                    webSocket_.send(audioDataArray.buffer);
+                                }
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
                                     var byteArray = new Int8Array(1);
