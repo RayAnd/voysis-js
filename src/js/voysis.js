@@ -119,7 +119,7 @@
             return sendCreateAudioQueryRequest(locale, context, conversationId, false, audioContext_.sampleRate);
         });
     };
-
+   
     VoysisSession.prototype.streamAudio = function (audioQueryResponse, callback) {
         stopStreaming_ = false;
         queryDurations_.clear();
@@ -190,9 +190,10 @@
             addCallbacks(STREAM_AUDIO_CALLBACK_KEY, resolve, reject);
             debug('Getting user media');
             // Use the latest getUserMedia method if it exists
+            var reportAudioError = reportError("AUDIO_ERROR", audioQueryResponse, sendRequest, sessionApiToken_)
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 debug('Using standard getUserMedia');
-                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch(reject);
+                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch((err) => {reportAudioError(err.name); reject(err)});
             } else {
                 // Find a getUserMedia method for the current platform
                 if (navigator.getUserMedia) {
@@ -203,6 +204,7 @@
                     debug('Using navigator.mozGetUserMedia');
                 } else {
                     debug('No getUserMedia available');
+                    reportAudioError('NotSupportedError');
                     reject(createError('Browser does not support streaming audio', 'NotSupportedError'));
                 }
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -218,6 +220,14 @@
     VoysisSession.prototype.rateQuery = function (queryToRate, rating, description) {
         return sendFeedback(queryToRate, rating, description);
     };
+
+    var reportError = function(cancelType, audioQueryResponse, sendRequest, sessionApiToken_) {
+        return function(error) {
+            var errorURI = '/queries/'+audioQueryResponse.id+'/cancellation' 
+            var errorJson = {"cancelReason": cancelType, "detail": error}
+            sendRequest('POST', errorURI, errorJson, {'Accept': 'application/json'}, sessionApiToken_.token)
+        };
+    };   
 
     function sendQueryDurations(query) {
         debug('Durations', queryDurations_);
