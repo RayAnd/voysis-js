@@ -196,7 +196,7 @@
             // Use the latest getUserMedia method if it exists
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 debug('Using standard getUserMedia');
-                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch((err) => {reportError(micOrAudioReason(err), err, audioQueryResponse.id); reject(err)});
+                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch((err) => {reportError(micOrAudioReason(err), err, audioQueryResponse.id); reject(err);});
             } else {
                 // Find a getUserMedia method for the current platform
                 if (navigator.getUserMedia) {
@@ -242,9 +242,9 @@
             if (error instanceof DOMException) {
                 detail = error.name;
             }
-            var payload = {"cancelReason": cancelReason, "detail": String(detail)};
-            var errorURI = '/queries/'+queryId+'/cancellation' 
-            sendRequest('POST', errorURI, payload, {'Accept': 'application/json'}, sessionApiToken_.token)
+            var payload = {'cancelReason': cancelReason, 'detail': String(detail)};
+            var errorURI = '/queries/'+queryId+'/cancellation';
+            sendRequest('POST', errorURI, payload, {'Accept': 'application/json'}, sessionApiToken_.token);
         } catch (ex) {
             debug('Failed to report a client error to the server.', ex);
         }
