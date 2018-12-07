@@ -171,7 +171,10 @@
                             }
                         }
                     };
-                    processor.onerror = reject;
+                    processor.onerror = function(err) {
+                        reportError('AUDIO_ERROR', err, audioQueryResponse.id);
+                        reject(err);
+                    };
                     var timeoutId = setTimeout(function () {
                         stopStreaming();
                         reject(new Error('No response received within the timeout'));
@@ -184,16 +187,16 @@
                     source.connect(processor);
                     processor.connect(audioContext_.destination);
                 } catch (err) {
+                    reportError('OTHER', err, audioQueryResponse.id);
                     reject(err);
                 }
             };
             addCallbacks(STREAM_AUDIO_CALLBACK_KEY, resolve, reject);
             debug('Getting user media');
             // Use the latest getUserMedia method if it exists
-            var reportAudioError = reportError("AUDIO_ERROR", audioQueryResponse, sendRequest, sessionApiToken_)
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 debug('Using standard getUserMedia');
-                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch((err) => {reportAudioError(err.name); reject(err)});
+                navigator.mediaDevices.getUserMedia({audio: true}).then(onSuccess).catch((err) => {reportError(micOrAudioReason(err), err, audioQueryResponse.id); reject(err)});
             } else {
                 // Find a getUserMedia method for the current platform
                 if (navigator.getUserMedia) {
@@ -204,11 +207,15 @@
                     debug('Using navigator.mozGetUserMedia');
                 } else {
                     debug('No getUserMedia available');
-                    reportAudioError('NotSupportedError');
+                    reportError('OTHER', 'NotSupportedError', audioQueryResponse.id);
                     reject(createError('Browser does not support streaming audio', 'NotSupportedError'));
                 }
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                getUserMedia({audio: true}, onSuccess, reject);
+                var rejectHandler = function(err) {
+                    reportError(micOrAudioReason(err), err, audioQueryResponse.id);
+                    reject(err);
+                };
+                getUserMedia({audio: true}, onSuccess, rejectHandler);
             }
         });
         if (autoSendDurations_) {
@@ -221,13 +228,27 @@
         return sendFeedback(queryToRate, rating, description);
     };
 
-    var reportError = function(cancelType, audioQueryResponse, sendRequest, sessionApiToken_) {
-        return function(error) {
-            var errorURI = '/queries/'+audioQueryResponse.id+'/cancellation' 
-            var errorJson = {"cancelReason": cancelType, "detail": error}
-            sendRequest('POST', errorURI, errorJson, {'Accept': 'application/json'}, sessionApiToken_.token)
-        };
-    };   
+    var micOrAudioReason = function(error) {
+        if (error instanceof DOMException && error.name == 'NotAllowedError') {
+            return 'MIC_PERMISSION';
+        } else {
+            return 'AUDIO_ERROR';
+        }
+    };
+
+    var reportError = function(cancelReason, error, queryId) {
+        try {
+            var detail = error;
+            if (error instanceof DOMException) {
+                detail = error.name;
+            }
+            var payload = {"cancelReason": cancelReason, "detail": String(detail)};
+            var errorURI = '/queries/'+queryId+'/cancellation' 
+            sendRequest('POST', errorURI, payload, {'Accept': 'application/json'}, sessionApiToken_.token)
+        } catch (ex) {
+            debug('Failed to report a client error to the server.', ex);
+        }
+    };
 
     function sendQueryDurations(query) {
         debug('Durations', queryDurations_);
