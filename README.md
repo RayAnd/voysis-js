@@ -23,6 +23,43 @@ Creating the files for distribution can be done by `grunt dist`
 
 Running `grunt` will run the default tasks, which will test and lint the code, and build the distribution.
 
+Creating a Release
+------------------
+
+Creating a release is done via the grunt-release npm package, which should
+have installed as part of the `npm install` execution from the Build & Test
+section. You will also need to place a Github API token in your environment,
+in the `GITHUB_ACCESS_TOKEN` variable. Generate an API token from [this
+page.](https://github.com/settings/tokens)
+
+
+You must be on the *master* branch with no local modifications prior to
+running the release tasks.
+
+First, do a dry-run of the release process and examine the steps to ensure
+they correspond to your expectations:
+
+```
+grunt release --no-write
+```
+
+If you accept the steps, re-run the command without `--no-write`:
+
+```
+grunt release
+```
+
+This does a _patch_ release (incrementing the right-most number in the
+version number.) It is possible to specify which component of the version
+number should be incremented using specific sub-commands:
+
+```
+grunt release:patch
+grunt release:minor
+grunt release:major
+```
+
+
 Documentation
 -------------
 

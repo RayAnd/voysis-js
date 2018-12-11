@@ -1,6 +1,6 @@
 {
   "name": "voysis-js",
-  "version": "2.0.0",
+  "version": "2.0.4",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +12,7 @@
     "grunt-contrib-jasmine": "^2.0.1",
     "grunt-contrib-uglify-es": "^3.3.0",
     "grunt-eslint": "^20.1.0",
+    "grunt-release": "^0.14.0",
     "mock-socket": "^7.1.0"
   },
   "scripts": {
