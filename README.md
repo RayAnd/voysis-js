@@ -49,6 +49,16 @@ If you accept the steps, re-run the command without `--no-write`:
 grunt release
 ```
 
+This does a _patch_ release (incrementing the right-most number in the
+version number.) It is possible to specify which component of the version
+number should be incremented using specific sub-commands:
+
+```
+grunt release:patch
+grunt release:minor
+grunt release:major
+```
+
 
 Documentation
 -------------
