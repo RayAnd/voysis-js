@@ -65,7 +65,7 @@ module.exports = function (grunt) {
                 tagName: '<%= version %>',
                 commitMessage: 'Create release <%= version %>',
                 tagMessage: 'Tag release <%= version %>',
-                gitHub: {
+                github: {
                     repo: 'voysis/voysis-js',
                     accessTokenVar: 'GITHUB_ACCESS_TOKEN'
                 }
