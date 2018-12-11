@@ -52,6 +52,24 @@ module.exports = function (grunt) {
                     'build/voysis-<%= pkg.version %>.min.js': 'build/voysis.js'
                 }
             }
+        },
+        release: {
+            options: {
+                bump: true,
+                changelog: false,
+                tag: true,
+                push: true,
+                pushTags: true,
+                npm: false,
+                npmtag: false,
+                tagName: '<%= version %>',
+                commitMessage: 'Create release <%= version %>',
+                tagMessage: '<%= version %>',
+                github: {
+                    repo: 'voysis/voysis-js',
+                    accessTokenVar: 'GITHUB_ACCESS_TOKEN'
+                }
+            }
         }
     });
 
@@ -59,6 +77,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-uglify-es');
     grunt.loadNpmTasks('grunt-eslint');
+    grunt.loadNpmTasks('grunt-release');
 
     grunt.registerTask('test', ['jasmine']);
     grunt.registerTask('dist', ['copy', 'uglify']);
