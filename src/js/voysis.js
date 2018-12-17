@@ -177,7 +177,9 @@
                     };
                     var timeoutId = setTimeout(function () {
                         stopStreaming();
-                        reject(new Error('No response received within the timeout'));
+                        var detail = 'No response received within the timeout';
+                        reportError('OTHER', detail, audioQueryResponse.id);
+                        reject(new Error(detail));
                     }, args_.streamingAudioDeadline);
                     addCallbacks(VAD_STOP_CALLBACK_KEY, function (notificationType) {
                         clearTimeout(timeoutId);
