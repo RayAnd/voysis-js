@@ -227,8 +227,8 @@
 
     function browserBlacklisted() {
         var ua = navigator.userAgent;
-        var blacklistedKeywords = ['FB_IAB']
-        return blacklistedKeywords.some((keyword) => RegExp(keyword).test(ua))
+        var blacklistedKeywords = ['FB_IAB'];
+        return blacklistedKeywords.some((keyword) => RegExp(keyword).test(ua));
     }
     function sendFeedback(queryForFeedback, rating, description, durations) {
         var sendFeedbackFunction = function () {
