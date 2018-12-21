@@ -76,7 +76,7 @@
 
     VoysisSession.isStreamingAudioSupported = function () {
         // Look for a getUserMedia method for the current platform
-        return !!(AudioContext &&
+        return !!(AudioContext && !browserBlacklisted() &&
             (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
                 (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)));
 
@@ -225,6 +225,11 @@
         return query;
     }
 
+    function browserBlacklisted() {
+        var ua = navigator.userAgent;
+        var blacklistedKeywords = ['FB_IAB']
+        return blacklistedKeywords.some((keyword) => RegExp(keyword).test(ua))
+    }
     function sendFeedback(queryForFeedback, rating, description, durations) {
         var sendFeedbackFunction = function () {
             var feedbackUri = queryForFeedback._links.self.href + '/feedback';
