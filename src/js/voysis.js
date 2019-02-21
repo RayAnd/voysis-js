@@ -318,7 +318,7 @@
             'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
-                'mimeType': 'audio/pcm;bits=32;rate=' + samplingRate
+                'mimeType': 'audio/pcm;encoding=float;bits=32;channels=1;big-endian=false;rate=' + samplingRate
             },
             'context': context || {}
         };
