@@ -254,7 +254,7 @@
     VoysisSession.prototype.getSavedAudioStream = function() {
         if (savedAudioStream_) {
             var fullData = new Float32Array(
-                    ((savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE) + savedAudioStreamPos_
+                ((savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE) + savedAudioStreamPos_
             );
             for (var i = 0; i < savedAudioStream_.length - 1; i++) {
                 fullData.set(savedAudioStream_[i], i * SAVE_CHUNK_SIZE);
