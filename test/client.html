@@ -493,6 +493,7 @@
                   var samples = voysisClient.getVoysisSession().getSavedAudioStream();
                   if (samples) {
                       var wavHeader = new Uint8Array(58);
+                      var dataView = new DataView(wavHeader.buffer);
                       wavHeader.set([
                               0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
                               0x66, 0x6d, 0x74, 0x20, 0x12, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
@@ -500,11 +501,11 @@
                               0x00, 0x00, 0x66, 0x61, 0x63, 0x74, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
                       ]);
-                      putLittleEndianInt(samples.byteLength + 50, wavHeader, 4);
-                      putLittleEndianInt(sampleRate_, wavHeader, 24);
-                      putLittleEndianInt(sampleRate_ * 4, wavHeader, 28);
-                      putLittleEndianInt(samples.length, wavHeader, 46);
-                      putLittleEndianInt(samples.byteLength, wavHeader, 54);
+                      dataView.setUint32(4, samples.byteLength + 50, true);
+                      dataView.setUint32(24, sampleRate_, true);
+                      dataView.setUint32(28, sampleRate_ * 4, true);
+                      dataView.setUint32(46, samples.length, true);
+                      dataView.setUint32(54, samples.byteLength, true);
                       audioBlob_ = new Blob([wavHeader, samples.buffer], {type: 'application/octet-stream'});
                       audioDownloadUrl_ = URL.createObjectURL(audioBlob_);
                       $('#download-audio').attr('href', audioDownloadUrl_);
@@ -533,13 +534,6 @@
               button.classList.remove('is-active');
               voysisClient.error('Enter AI hostname.');
           }
-      }
-
-      function putLittleEndianInt(value, uint8Array, index) {
-          uint8Array[index] = value & 0xff;
-          uint8Array[index + 1] = (value & 0xff00) >>> 8;
-          uint8Array[index + 2] = (value & 0xff0000) >>> 16;
-          uint8Array[index + 3] = (value & 0xff000000) >>> 24;
       }
 
       function stopQuery() {
