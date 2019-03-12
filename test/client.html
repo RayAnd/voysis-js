@@ -35,6 +35,11 @@
               <i class="fas fa-edit fa-lg"></i>
             </span>
           </a>
+          <a class="navbar-item has-text-white" style="display: none;" id="download-audio" href="#" title="Download Captured Audio" onclick="return checkDownloadAudio();">
+            <span class="icon is-medium">
+              <i class="fas fa-download fa-lg"></i>
+            </span>
+          </a>
           <a class="navbar-item has-text-white" title="Help" onclick="toggleHelp()">
             <span class="icon is-medium">
               <i class="fas fa-question-circle fa-lg"></i>
@@ -279,7 +284,8 @@
         <h2 class="modal-card-title">Settings:</h2>
       </header>
       <section class="modal-card-body">
-        <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox">Ignore Vad<br>
+        <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox"><label for="vad-enabled-checkbox">&nbsp;Ignore Vad<label><br>
+        <input type="checkbox" name="saveAudio" id="save-audio-checkbox"><label for="save-audio-checkbox">&nbsp;Save Audio Stream</label><br>
       </section>
     </div>
   </div>
@@ -298,6 +304,9 @@
       var lastQuery;
       var currentRating = 5;
       var streaming = false;
+      var audioDownloadUrl_ = undefined;
+      var audioBlob_ = undefined;
+      var sampleRate_;
       var serviceType;
       $(document).ready(function () {
           voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
@@ -428,11 +437,14 @@
               var audioContext = voysisClient.getAudioContext();
               return voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
                   streaming = true;
-                  return voysisSession.streamAudio(audioQueryResponse, function (notificationType) {
+                  return voysisSession.streamAudio(audioQueryResponse, function (notificationType, properties) {
                       console.log("Notification: ", notificationType);
                       switch (notificationType) {
                           case 'recording_started':
                               voysisClient.warn('Listening...');
+                              if (properties && properties.sampleRate) {
+                                  sampleRate_ = properties.sampleRate;
+                              }
                               break;
                           default:
                               reportStopStreaming();
@@ -453,6 +465,11 @@
       }
 
       function performQuery(query_function, button) {
+          if (audioDownloadUrl_) {
+              URL.revokeObjectURL(audioDownloadUrl_);
+              audioDownloadUrl_ = undefined;
+              audioBlob_ = undefined;
+          }
           var host = voysisClient.getHost();
           console.log('Sending query to: ', host);
           if (host && host !== '') {
@@ -472,6 +489,29 @@
                   if (help != null) {
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
+                  }
+                  var samples = voysisClient.getVoysisSession().getSavedAudioStream();
+                  if (samples) {
+                      var wavHeader = new Uint8Array(58);
+                      wavHeader.set([
+                              0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+                              0x66, 0x6d, 0x74, 0x20, 0x12, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x20, 0x00,
+                              0x00, 0x00, 0x66, 0x61, 0x63, 0x74, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+                              0x00, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+                      ]);
+                      putLittleEndianInt(samples.byteLength + 50, wavHeader, 4);
+                      putLittleEndianInt(sampleRate_, wavHeader, 24);
+                      putLittleEndianInt(sampleRate_ * 4, wavHeader, 28);
+                      putLittleEndianInt(samples.length, wavHeader, 46);
+                      putLittleEndianInt(samples.byteLength, wavHeader, 54);
+                      audioBlob_ = new Blob([wavHeader, samples.buffer], {type: 'application/octet-stream'});
+                      audioDownloadUrl_ = URL.createObjectURL(audioBlob_);
+                      $('#download-audio').attr('href', audioDownloadUrl_);
+                      $('#download-audio').attr('download', queryResults["id"] + "-client.wav");
+                  } else {
+                      $('#download-audio').attr('href', '#');
+                      audioBlob_ = undefined;
                   }
               }).catch(function (error) {
                   button.classList.remove('is-active');
@@ -493,6 +533,13 @@
               button.classList.remove('is-active');
               voysisClient.error('Enter AI hostname.');
           }
+      }
+
+      function putLittleEndianInt(value, uint8Array, index) {
+          uint8Array[index] = value & 0xff;
+          uint8Array[index + 1] = (value & 0xff00) >>> 8;
+          uint8Array[index + 2] = (value & 0xff0000) >>> 16;
+          uint8Array[index + 3] = (value & 0xff000000) >>> 24;
       }
 
       function stopQuery() {
@@ -525,6 +572,15 @@
           $('#feedbackModal').removeClass('is-active');
       }
 
+      function checkDownloadAudio() {
+          if (audioBlob_) {
+              return true;
+          } else {
+              alert('There is no captured audio to download');
+              return false;
+          }
+      }
+
       $(function () {
           $('.rating .button').click(function () {
               $('.rating .button .icon .icon-star').removeClass('is-active');
@@ -532,9 +588,18 @@
               $(this).find('i').addClass('is-active');
               currentRating = Number($(this).attr('value'));
           });
-          $('#vad-enabled-checkbox').click(function() {
-            voysisClient.setIgnoreVad(!voysisClient.getIgnoreVad());
+          var vadEnabledCheckbox = $('#vad-enabled-checkbox');
+          var saveAudioCheckbox = $('#save-audio-checkbox');
+          voysisClient.setIgnoreVad(vadEnabledCheckbox.prop('checked'));
+          voysisClient.setSaveAudioStream(saveAudioCheckbox.prop('checked'));
+          $('#download-audio').toggle(saveAudioCheckbox.prop('checked'));
+          vadEnabledCheckbox.click(function() {
+            voysisClient.setIgnoreVad(this.checked);
           })
+          saveAudioCheckbox.click(function() {
+            $('#download-audio').toggle(this.checked);
+            voysisClient.setSaveAudioStream(this.checked);
+          });
       });
   </script>
  </body>

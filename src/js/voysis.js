@@ -37,6 +37,7 @@
     const VAD_STOP_NOTIFICATION = 'vad_stop';
     const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
     const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
+    const SAVE_CHUNK_SIZE = 1048576;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
     var args_ = {};
@@ -48,6 +49,8 @@
     var autoSendDurations_;
     var queryStartTime_;
     var sessionApiToken_;
+    var savedAudioStream_;
+    var savedAudioStreamPos_;
 
     function VoysisSession(args) {
         args_ = args || {};
@@ -59,6 +62,7 @@
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
         args_.audioBufferSize = args_.audioBufferSize || 4096;
         args_.ignoreVad = args_.ignoreVad || false;
+        args_.saveAudioStream = args_.saveAudioStream || false;
         webSocket_ = null;
         callbacks_ = new Map();
         queryDurations_ = new Map();
@@ -123,6 +127,13 @@
     VoysisSession.prototype.streamAudio = function (audioQueryResponse, callback) {
         stopStreaming_ = false;
         queryDurations_.clear();
+        if (args_.saveAudioStream) {
+            debug('Saving audio stream client side.');
+            savedAudioStream_ = [new Float32Array(SAVE_CHUNK_SIZE)];
+            savedAudioStreamPos_ = 0;
+        } else {
+            debug('Not saving the audio stream on the client side.');
+        }
         var promise = new Promise(function (resolve, reject) {
             var onSuccess = function (stream) {
                 queryStartTime_ = Date.now();
@@ -148,7 +159,7 @@
                         if (!streamingStopped) {
                             if (isWebSocketOpen()) {
                                 if (!recordingCallbackSent) {
-                                    callFunction(callback, 'recording_started');
+                                    callFunction(callback, 'recording_started', {sampleRate: audioContext_.sampleRate});
                                     recordingCallbackSent = true;
                                 }
                                 var inBuf = audioProcessingEvent.inputBuffer;
@@ -156,6 +167,16 @@
                                     var audioDataArray = new Float32Array(
                                         inBuf.getChannelData(0)
                                     );
+                                    if (savedAudioStream_) {
+                                        var buf = savedAudioStream_[savedAudioStream_.length - 1];
+                                        if (savedAudioStreamPos_ >= buf.length) {
+                                            buf = new Float32Array(SAVE_CHUNK_SIZE);
+                                            savedAudioStream_[savedAudioStream_.length] = buf;
+                                            savedAudioStreamPos_ = 0;
+                                        }
+                                        buf.set(audioDataArray, savedAudioStreamPos_);
+                                        savedAudioStreamPos_ += inBuf.length;
+                                    }
                                     webSocket_.send(audioDataArray.buffer);
                                 }
                                 if (stopStreaming_) {
@@ -228,6 +249,21 @@
 
     VoysisSession.prototype.rateQuery = function (queryToRate, rating, description) {
         return sendFeedback(queryToRate, rating, description);
+    };
+
+    VoysisSession.prototype.getSavedAudioStream = function() {
+        if (savedAudioStream_) {
+            var fullData = new Float32Array(
+                    ((savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE) + savedAudioStreamPos_
+            );
+            for (var i = 0; i < savedAudioStream_.length - 1; i++) {
+                fullData.set(savedAudioStream_[i], i * SAVE_CHUNK_SIZE);
+            }
+            fullData.set(savedAudioStream_[savedAudioStream_.length - 1].slice(0, savedAudioStreamPos_), (savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE);
+            return fullData;
+        } else {
+            return undefined;
+        }
     };
 
     var micOrAudioReason = function(error) {
