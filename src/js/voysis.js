@@ -37,6 +37,13 @@
     const VAD_STOP_NOTIFICATION = 'vad_stop';
     const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
     const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
+    // SAVE_CHUNK_SIZE must be a value that is _exactly_ divisible by
+    // the size of the WebAudio buffer being used. When using client-side
+    // audio capture, this relationship between the sizes is important
+    // to avoid buffer under- and over-flows. Since WebAudio only allows
+    // power-of-two buffer sizes between 1K and 16K, any larger power-of-
+    // two value is valid for SAVE_CHUNK_SIZE to support any of those
+    // buffer sizes.
     const SAVE_CHUNK_SIZE = 1048576;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
@@ -169,6 +176,9 @@
                                     );
                                     if (savedAudioStream_) {
                                         var buf = savedAudioStream_[savedAudioStream_.length - 1];
+                                        // Due to the size constraint put on SAVE_CHUNK_SIZE,
+                                        // each chunk will be exactly filled to the end, except
+                                        // for the last one.
                                         if (savedAudioStreamPos_ >= buf.length) {
                                             buf = new Float32Array(SAVE_CHUNK_SIZE);
                                             savedAudioStream_[savedAudioStream_.length] = buf;
