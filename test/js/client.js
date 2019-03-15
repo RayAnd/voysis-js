@@ -46,6 +46,7 @@
         var sessionChanged_ = false;
         var audioBufferSize_ = 4096;
         var ignoreVad = false;
+        var saveAudioStream_ = false;
 
         function createUuid() {
             function s4() {
@@ -131,12 +132,21 @@
             },
 
             setIgnoreVad: function (enabled) {
+                sessionChanged_ = enabled != ignoreVad;
                 ignoreVad = enabled;
-                sessionChanged_ = true;
             },
 
             getIgnoreVad: function() {
                 return ignoreVad;
+            },
+
+            setSaveAudioStream: function(enabled) {
+                sessionChanged_ = enabled != saveAudioStream_;
+                saveAudioStream_ = enabled;
+            },
+
+            getSaveAudioStream: function(enabled) {
+                return saveAudioStream_;
             },
 
             getUserId: function () {
@@ -169,7 +179,8 @@
                         autoSendDurations: true,
                         audioBufferSize: audioBufferSize_,
                         userId: userId_,
-                        ignoreVad: ignoreVad
+                        ignoreVad: ignoreVad,
+                        saveAudioStream: saveAudioStream_
                     });
                     sessionChanged_ = false;
                 }
