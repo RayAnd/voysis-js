@@ -622,12 +622,17 @@
         return new Promise(function (resolve, reject) {
             var sendCallback = function () {
                 currentRequestId_++;
+                var clientInfo = {
+                    'sdk': {'id': 'voysis-js', 'version': VoysisSession.version}
+                };
                 var msg = {
                     'type': 'request',
                     'requestId': currentRequestId_.toString(),
                     'method': method,
                     'restUri': uri,
-                    'headers': {}
+                    'headers': {
+                        'X-Voysis-Client-Info': JSON.stringify(clientInfo)
+                    }
                 };
                 if (authToken) {
                     msg.headers.Authorization = 'Bearer ' + authToken;
