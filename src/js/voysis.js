@@ -37,17 +37,11 @@
     const VAD_STOP_NOTIFICATION = 'vad_stop';
     const QUERY_COMPLETE_NOTIFICATION = 'query_complete';
     const INTERNAL_SERVER_ERROR_NOTIFICATION = 'internal_server_error';
-    // SAVE_CHUNK_SIZE must be a value that is _exactly_ divisible by
-    // the size of the WebAudio buffer being used. When using client-side
-    // audio capture, this relationship between the sizes is important
-    // to avoid buffer under- and over-flows. Since WebAudio only allows
-    // power-of-two buffer sizes between 1K and 16K, any larger power-of-
-    // two value is valid for SAVE_CHUNK_SIZE to support any of those
-    // buffer sizes.
-    const SAVE_CHUNK_SIZE = 1048576;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     var audioContext_ = null;
     var args_ = {};
+    var RecorderImpl_;
+    var recorder_;
     var webSocket_;
     var callbacks_;
     var currentRequestId_;
@@ -57,7 +51,6 @@
     var queryStartTime_;
     var sessionApiToken_;
     var savedAudioStream_;
-    var savedAudioStreamPos_;
 
     function VoysisSession(args) {
         args_ = args || {};
@@ -81,8 +74,17 @@
             token: null,
             expiresAtEpoch: 0
         };
+        RecorderImpl_ = selectRecorderImpl(args_.recorder);
+        recorder_ = new RecorderImpl_();
+        debug('Selected', RecorderImpl_.implName, 'as the recorder implementation.');
     }
 
+    // Automatically choose which audio recorder to use.
+    VoysisSession.RECORDER_AUTO = 0;
+    // Force the use of WebRTC's MediaRecorder.
+    VoysisSession.RECORDER_WEBRTC = 1;
+    // Force the use of WebAudio's ScriptProcessorNode.
+    VoysisSession.RECORDER_WEBAUDIO = 2;
     VoysisSession.version = '${LIBRARY_VERSION}';
 
     VoysisSession.isStreamingAudioSupported = function () {
@@ -127,7 +129,7 @@
     VoysisSession.prototype.createAudioQuery = function (locale, context, conversationId, audioContext) {
         return checkAudioContext(audioContext).then(function () {
             queryDurations_.clear();
-            return sendCreateAudioQueryRequest(locale, context, conversationId, false, audioContext_.sampleRate);
+            return sendCreateAudioQueryRequest(locale, context, conversationId, false);
         });
     };
    
@@ -136,8 +138,6 @@
         queryDurations_.clear();
         if (args_.saveAudioStream) {
             debug('Saving audio stream client side.');
-            savedAudioStream_ = [new Float32Array(SAVE_CHUNK_SIZE)];
-            savedAudioStreamPos_ = 0;
         } else {
             debug('Not saving the audio stream on the client side.');
         }
@@ -147,21 +147,17 @@
                 var recordingCallbackSent = false;
                 var streamingStopped = false;
                 try {
-                    debug('Recording at ', audioContext_.sampleRate, 'Hz with a buffer size of ', args_.audioBufferSize);
-                    var source = audioContext_.createMediaStreamSource(stream);
-                    var processor = audioContext_.createScriptProcessor(args_.audioBufferSize, 1, 1);
                     var stopStreaming = (function () {
                         if (!streamingStopped) {
-                            streamingStopped = true;
-                            processor.disconnect();
-                            source.disconnect();
-                            stream.getAudioTracks().forEach(function (track) {
-                                track.stop();
-                            });
-                            debug('Finished Streaming');
+                            try {
+                                streamingStopped = true;
+                                recorder_.stop();
+                            } finally {
+                                debug('Finished Streaming');
+                            }
                         }
                     });
-                    processor.onaudioprocess = function (audioProcessingEvent) {
+                    var processAudio = function (audioData) {
                         // if the websocket has been closed, then stop recording and sending audio
                         if (!streamingStopped) {
                             if (isWebSocketOpen()) {
@@ -169,26 +165,7 @@
                                     callFunction(callback, 'recording_started', {sampleRate: audioContext_.sampleRate});
                                     recordingCallbackSent = true;
                                 }
-                                var inBuf = audioProcessingEvent.inputBuffer;
-                                if (inBuf.length > 0) {
-                                    var audioDataArray = new Float32Array(
-                                        inBuf.getChannelData(0)
-                                    );
-                                    if (savedAudioStream_) {
-                                        var buf = savedAudioStream_[savedAudioStream_.length - 1];
-                                        // Due to the size constraint put on SAVE_CHUNK_SIZE,
-                                        // each chunk will be exactly filled to the end, except
-                                        // for the last one.
-                                        if (savedAudioStreamPos_ >= buf.length) {
-                                            buf = new Float32Array(SAVE_CHUNK_SIZE);
-                                            savedAudioStream_[savedAudioStream_.length] = buf;
-                                            savedAudioStreamPos_ = 0;
-                                        }
-                                        buf.set(audioDataArray, savedAudioStreamPos_);
-                                        savedAudioStreamPos_ += inBuf.length;
-                                    }
-                                    webSocket_.send(audioDataArray.buffer);
-                                }
+                                webSocket_.send(audioData);
                                 if (stopStreaming_) {
                                     debug('Stopping streaming...');
                                     var byteArray = new Int8Array(1);
@@ -202,7 +179,7 @@
                             }
                         }
                     };
-                    processor.onerror = function(err) {
+                    var errorHandler = function(err) {
                         reportError('AUDIO_ERROR', err, audioQueryResponse.id);
                         reject(err);
                     };
@@ -217,8 +194,7 @@
                         stopStreaming();
                         callFunction(callback, notificationType);
                     });
-                    source.connect(processor);
-                    processor.connect(audioContext_.destination);
+                    recorder_.start(stream, processAudio, errorHandler);
                 } catch (err) {
                     reportError('OTHER', err, audioQueryResponse.id);
                     reject(err);
@@ -262,17 +238,158 @@
     };
 
     VoysisSession.prototype.getSavedAudioStream = function() {
-        if (savedAudioStream_) {
-            var fullData = new Float32Array(
-                ((savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE) + savedAudioStreamPos_
-            );
-            for (var i = 0; i < savedAudioStream_.length - 1; i++) {
-                fullData.set(savedAudioStream_[i], i * SAVE_CHUNK_SIZE);
-            }
-            fullData.set(savedAudioStream_[savedAudioStream_.length - 1].slice(0, savedAudioStreamPos_), (savedAudioStream_.length - 1) * SAVE_CHUNK_SIZE);
-            return fullData;
+        if (recorder_) {
+            return recorder_.getSavedAudioStream();
         } else {
             return undefined;
+        }
+    };
+
+    /*
+     * Recorder implementations. Recorders must provide the following
+     * interface:
+     * interface Recorder {
+     *     // Get the MIME type of the audio data generated by this recorder
+     *     // implemntation.
+     *     // @return The MIME type.
+     *     String getMimeType();
+     *
+     *     // Start recording.
+     *     // @param stream The user media stream.
+     *     // @param onDataAvailable A function that will be invoked by the
+     *     //                        recorder when audio data is available.
+     *     //                        The single "data" parameter to this function
+     *     //                        may vary by implementation but should either
+     *     //                        be a TypedArray or a Blob.
+     *     // @param errorHandler A function that will be invoked when an error
+     *     //                     occurs in the stream. This function should accept
+     *     //                     a single "error" parameter.
+     *     void start(MediaStream stream, function onDataAvailable, function errorHandler);
+     *
+     *     // Stop recording.
+     *     void stop();
+     *
+     *     // Get the saved audio stream.
+     *     // @return The audio stream blob, or null if no audio data is available
+     *     //         or the recorder doesn't support saving audio locally.
+     *     Blob getSavedAudioSteam();
+     * }
+     */
+    function WebRtcRecorder() {
+    }
+    WebRtcRecorder.implName = 'WebRtcRecorder';
+    WebRtcRecorder.prototype.getMimeType = function() {
+        return 'audio/webm';
+    };
+    WebRtcRecorder.prototype.start = function(stream, onDataAvailable, errorHandler) {
+        this.mediaRecorder = new MediaRecorder(stream, {mimeType: 'audio/webm;codecs=pcm', audioBitsPerSecond: 128000});
+        if (args_.saveAudioStream) {
+            savedAudioStream_ = [];
+        }
+        this.mediaRecorder.ondataavailable = function(evt) {
+            var audioDataBlob = evt.data;
+            if (args_.saveAudioStream) {
+                savedAudioStream_[savedAudioStream_.length] = audioDataBlob;
+            }
+            onDataAvailable(audioDataBlob);
+        };
+        this.mediaRecorder.onerror = errorHandler;
+        this.mediaRecorder.start(128);
+        debug('Recording at ??? bps');
+    };
+    WebRtcRecorder.prototype.stop = function() {
+        if (this.mediaRecorder) {
+            this.mediaRecorder.stop();
+        }
+    };
+    WebRtcRecorder.prototype.getSavedAudioStream = function() {
+        if (savedAudioStream_) {
+            return new Blob(savedAudioStream_, {type: 'audio/webm'});
+        } else {
+            return null;
+        }
+    };
+
+    function WebAudioRecorder() {
+    }
+    WebAudioRecorder.implName = 'WebAudioRecorder';
+    WebAudioRecorder.prototype.getMimeType = function() {
+        var sampleRate = audioContext_.sampleRate;
+        return 'audio/pcm;encoding=float;bits=32;channels=1;big-endian=false;rate=' + sampleRate;
+    };
+    WebAudioRecorder.prototype.start = function(stream, onDataAvailable, errorHandler) {
+        this.stream = stream;
+        this.source = audioContext_.createMediaStreamSource(stream);
+        this.processor = audioContext_.createScriptProcessor(args_.audioBufferSize, 1, 1);
+        if (args_.saveAudioStream) {
+            savedAudioStream_ = [];
+        }
+        this.processor.onaudioprocess = function(evt) {
+            var inBuf = evt.inputBuffer;
+            if (inBuf.length > 0) {
+                var dataCopy = new Float32Array(inBuf.getChannelData(0));
+                if (args_.saveAudioStream) {
+                    savedAudioStream_[savedAudioStream_.length] = new Blob([dataCopy], {type: 'application/octet-stream'});
+                }
+                onDataAvailable(dataCopy);
+            }
+        };
+        this.processor.onerror = errorHandler;
+        this.source.connect(this.processor);
+        this.processor.connect(audioContext_.destination);
+        debug('Recording at ', audioContext_.sampleRate, 'Hz with a buffer size of ', args_.audioBufferSize);
+    };
+    WebAudioRecorder.prototype.stop = function() {
+        if (this.processor) {
+            this.processor.disconnect();
+        }
+        if (this.source) {
+            this.source.disconnect();
+        }
+        if (this.stream) {
+            this.stream.getAudioTracks().forEach(function (track) {
+                track.stop();
+            });
+        }
+    };
+    WebAudioRecorder.prototype.getSavedAudioStream = function() {
+        if (!savedAudioStream_) {
+            return null;
+        }
+        var wavHeader = new Uint8Array(58);
+        var dataView = new DataView(wavHeader.buffer);
+        wavHeader.set([
+            0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+            0x66, 0x6d, 0x74, 0x20, 0x12, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x20, 0x00,
+            0x00, 0x00, 0x66, 0x61, 0x63, 0x74, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+        ]);
+        var sampleRate = audioContext_.sampleRate;
+        var samplesByteLen = 0;
+        for (var i = 0; i < savedAudioStream_.length; i++) {
+            samplesByteLen += savedAudioStream_[i].size;
+        }
+        dataView.setUint32(4, samplesByteLen + 50, true);
+        dataView.setUint32(24, sampleRate, true);
+        dataView.setUint32(28, sampleRate * 4, true);
+        dataView.setUint32(46, samplesByteLen / 4, true);
+        dataView.setUint32(54, samplesByteLen, true);
+        return new Blob([wavHeader].concat(savedAudioStream_), {type: 'audio/wav'});
+    };
+
+    var selectRecorderImpl = function(requestedImpl) {
+        switch (requestedImpl) {
+            case VoysisSession.RECORDER_WEBRTC:
+                return WebRtcRecorder;
+            case VoysisSession.RECORDER_WEBAUDIO:
+                return WebAudioRecorder;
+            default:
+                var recorder = WebRtcRecorder;
+                if (!window.MediaRecorder || !MediaRecorder.isTypeSupported('audio/webm;codecs=pcm')) {
+                    recorder = WebAudioRecorder;
+                }
+                return recorder;
         }
     };
 
@@ -359,12 +476,12 @@
         return error;
     }
 
-    function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken, samplingRate) {
+    function sendCreateAudioQueryRequest(locale, context, conversationId, skipCheckSessionToken) {
         var queryEntity = {
             'locale': locale,
             'queryType': 'audio',
             'audioQuery': {
-                'mimeType': 'audio/pcm;encoding=float;bits=32;channels=1;big-endian=false;rate=' + samplingRate
+                'mimeType': recorder_.getMimeType()
             },
             'context': context || {}
         };
@@ -505,12 +622,17 @@
         return new Promise(function (resolve, reject) {
             var sendCallback = function () {
                 currentRequestId_++;
+                var clientInfo = {
+                    'sdk': {'id': 'voysis-js', 'version': VoysisSession.version}
+                };
                 var msg = {
                     'type': 'request',
                     'requestId': currentRequestId_.toString(),
                     'method': method,
                     'restUri': uri,
-                    'headers': {}
+                    'headers': {
+                        'X-Voysis-Client-Info': JSON.stringify(clientInfo)
+                    }
                 };
                 if (authToken) {
                     msg.headers.Authorization = 'Bearer ' + authToken;

@@ -490,26 +490,15 @@
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
                   }
-                  var samples = voysisClient.getVoysisSession().getSavedAudioStream();
-                  if (samples) {
-                      var wavHeader = new Uint8Array(58);
-                      var dataView = new DataView(wavHeader.buffer);
-                      wavHeader.set([
-                              0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
-                              0x66, 0x6d, 0x74, 0x20, 0x12, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x20, 0x00,
-                              0x00, 0x00, 0x66, 0x61, 0x63, 0x74, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
-                      ]);
-                      dataView.setUint32(4, samples.byteLength + 50, true);
-                      dataView.setUint32(24, sampleRate_, true);
-                      dataView.setUint32(28, sampleRate_ * 4, true);
-                      dataView.setUint32(46, samples.length, true);
-                      dataView.setUint32(54, samples.byteLength, true);
-                      audioBlob_ = new Blob([wavHeader, samples.buffer], {type: 'application/octet-stream'});
+                  audioBlob_ = voysisClient.getVoysisSession().getSavedAudioStream();
+                  if (audioBlob_) {
                       audioDownloadUrl_ = URL.createObjectURL(audioBlob_);
+                      var ext = 'wav';
+                      if (audioBlob_.type == 'audio/webm') {
+                          ext = 'webm';
+                      }
                       $('#download-audio').attr('href', audioDownloadUrl_);
-                      $('#download-audio').attr('download', queryResults["id"] + "-client.wav");
+                      $('#download-audio').attr('download', queryResults["id"] + "-client." + ext);
                   } else {
                       $('#download-audio').attr('href', '#');
                       audioBlob_ = undefined;
