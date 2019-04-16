@@ -299,7 +299,11 @@
     };
     WebRtcRecorder.prototype.stop = function() {
         if (this.mediaRecorder) {
+            var stream = this.mediaRecorder.stream;
             this.mediaRecorder.stop();
+            stream.getAudioTracks().forEach(function(track) {
+                track.stop();
+            });
         }
     };
     WebRtcRecorder.prototype.getSavedAudioStream = function() {
