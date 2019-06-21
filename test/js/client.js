@@ -190,7 +190,7 @@
                         audioBufferSize: audioBufferSize_,
                         userId: userId_,
                         ignoreVad: ignoreVad,
-                        chatbotMode: chatbotMode
+                        chatbotMode: chatbotMode,
                         saveAudioStream: saveAudioStream_
                     });
                     sessionChanged_ = false;
