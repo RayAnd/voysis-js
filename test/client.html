@@ -287,6 +287,9 @@
         <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox"><label for="vad-enabled-checkbox">&nbsp;Ignore Vad<label><br>
         <input type="checkbox" name="saveAudio" id="save-audio-checkbox"><label for="save-audio-checkbox">&nbsp;Save Audio Stream</label><br>
       </section>
+      <section class="modal-card-body">
+        <input type="checkbox" name="chatbotMode" id="chatbot-mode-checkbox">Chatbot Mode<br>
+      </section>
     </div>
   </div>
 
@@ -578,7 +581,10 @@
           $('#download-audio').toggle(saveAudioCheckbox.prop('checked'));
           vadEnabledCheckbox.click(function() {
             voysisClient.setIgnoreVad(this.checked);
-          })
+          });
+          $('#chatbot-mode-checkbox').click(function() {
+            voysisClient.setChatbotMode(!voysisClient.getChatbotMode());
+          });
           saveAudioCheckbox.click(function() {
             $('#download-audio').toggle(this.checked);
             voysisClient.setSaveAudioStream(this.checked);

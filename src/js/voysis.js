@@ -62,6 +62,7 @@
         args_.tokenExpiryMargin = args_.tokenExpiryMargin || 30000;
         args_.audioBufferSize = args_.audioBufferSize || 4096;
         args_.ignoreVad = args_.ignoreVad || false;
+        args_.chatbotMode = args_.chatbotMode || false;
         args_.saveAudioStream = args_.saveAudioStream || false;
         webSocket_ = null;
         callbacks_ = new Map();
@@ -489,6 +490,9 @@
             },
             'context': context || {}
         };
+        if(args_.chatbotMode) {
+            queryEntity.interactionType = 'CHATBOT';
+        }
         if (conversationId) {
             queryEntity.conversationId = conversationId;
         }
