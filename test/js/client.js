@@ -47,6 +47,7 @@
         var audioBufferSize_ = 4096;
         var ignoreVad = false;
         var chatbotMode = false;
+        var saveAudioStream_ = false;
 
         function createUuid() {
             function s4() {
@@ -132,8 +133,8 @@
             },
 
             setIgnoreVad: function (enabled) {
+                sessionChanged_ = enabled != ignoreVad;
                 ignoreVad = enabled;
-                sessionChanged_ = true;
             },
             
             setChatbotMode: function (enabled) {
@@ -147,6 +148,15 @@
             
             getChatbotMode: function() {
                 return chatbotMode;
+            },
+
+            setSaveAudioStream: function(enabled) {
+                sessionChanged_ = enabled != saveAudioStream_;
+                saveAudioStream_ = enabled;
+            },
+
+            getSaveAudioStream: function(enabled) {
+                return saveAudioStream_;
             },
 
             getUserId: function () {
@@ -181,6 +191,7 @@
                         userId: userId_,
                         ignoreVad: ignoreVad,
                         chatbotMode: chatbotMode
+                        saveAudioStream: saveAudioStream_
                     });
                     sessionChanged_ = false;
                 }

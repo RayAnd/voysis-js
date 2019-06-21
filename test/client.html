@@ -12,7 +12,7 @@
           Typekit.load({async: true});
       } catch (e) {
       }</script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animate.css">
   </head>
@@ -25,25 +25,30 @@
           <img src="i/js-tester/voysis-logo-white.svg" width="133" height="40" style="margin-left: -9px" scale="0">
         </a>
         <div class="navbar-end is-flex-touch">
-          <a class="navbar-item show-settings-modal">
-            <span class="icon">
-              <img src="i/js-tester/icon-settings.svg" title="Settings" alt="Settings">
+          <a class="navbar-item show-settings-modal has-text-white" title="Settings">
+            <span class="icon is-medium">
+              <i class="fas fa-cog fa-lg"></i>
             </span>
           </a>
-          <a class="navbar-item show-feedback-modal">
-          <span class="icon">
-            <img src="i/js-tester/icon-feedback.svg">
-          </span>
-          </a>
-            <a class="navbar-item" onclick="toggleHelp()">
-            <span class="icon">
-              <img src="i/js-tester/icon-help.svg" title="Help" alt="Help">
+          <a class="navbar-item show-feedback-modal has-text-white" title="Feedback">
+            <span class="icon is-medium">
+              <i class="fas fa-edit fa-lg"></i>
             </span>
           </a>
-          <a class="navbar-item">
-              <span class="icon">
-                  <img src="i/js-tester/icon-logout.svg" title="Logout" alt="Logout" onclick="logout()">
-              </span>
+          <a class="navbar-item has-text-white" style="display: none;" id="download-audio" href="#" title="Download Captured Audio" onclick="return checkDownloadAudio();">
+            <span class="icon is-medium">
+              <i class="fas fa-download fa-lg"></i>
+            </span>
+          </a>
+          <a class="navbar-item has-text-white" title="Help" onclick="toggleHelp()">
+            <span class="icon is-medium">
+              <i class="fas fa-question-circle fa-lg"></i>
+            </span>
+          </a>
+          <a class="navbar-item has-text-white" title="Log out" onclick="logout()">
+            <span class="icon is-medium">
+              <i class="fas fa-sign-out-alt fa-lg"></i>
+            </span>
           </a>
         </div>
       </div>
@@ -109,9 +114,9 @@
                 <p>Tap mic to talk.</p>
               </div>
               <div class="column is-2-desktop is-right">
-                <a class="show-text-modal">
-                  <span class="icon">
-                    <img src="i/js-tester/icon-keyboard.svg">
+                <a class="show-text-modal" style="text-decoration: none" title="Text Query">
+                  <span class="icon is-medium">
+                    <i class="far fa-keyboard fa-lg"></i>
                   </span>
                 </a>
               </div>
@@ -279,7 +284,8 @@
         <h2 class="modal-card-title">Settings:</h2>
       </header>
       <section class="modal-card-body">
-        <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox">Ignore Vad<br>
+        <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox"><label for="vad-enabled-checkbox">&nbsp;Ignore Vad<label><br>
+        <input type="checkbox" name="saveAudio" id="save-audio-checkbox"><label for="save-audio-checkbox">&nbsp;Save Audio Stream</label><br>
       </section>
       <section class="modal-card-body">
         <input type="checkbox" name="chatbotMode" id="chatbot-mode-checkbox">Chatbot Mode<br>
@@ -296,11 +302,14 @@
       if (window.location.protocol === 'http:') {
           window.location = 'https:' + window.location.href.substring(window.location.protocol.length);
       }
-      var loginService = 'https://ladon.voysis.io/login';
+      var loginService = 'https://ladon.preprod.voysis.io/login';
       var help;
       var lastQuery;
       var currentRating = 5;
       var streaming = false;
+      var audioDownloadUrl_ = undefined;
+      var audioBlob_ = undefined;
+      var sampleRate_;
       var serviceType;
       $(document).ready(function () {
           voysisClient.setStatusMessageElementId('statusMessage', 'statusBar');
@@ -431,11 +440,14 @@
               var audioContext = voysisClient.getAudioContext();
               return voysisSession.createAudioQuery('en-US', voysisClient.getPreviousQueryContext(), voysisClient.getQueryConversationId(), audioContext).then(function (audioQueryResponse) {
                   streaming = true;
-                  return voysisSession.streamAudio(audioQueryResponse, function (notificationType) {
+                  return voysisSession.streamAudio(audioQueryResponse, function (notificationType, properties) {
                       console.log("Notification: ", notificationType);
                       switch (notificationType) {
                           case 'recording_started':
                               voysisClient.warn('Listening...');
+                              if (properties && properties.sampleRate) {
+                                  sampleRate_ = properties.sampleRate;
+                              }
                               break;
                           default:
                               reportStopStreaming();
@@ -456,6 +468,11 @@
       }
 
       function performQuery(query_function, button) {
+          if (audioDownloadUrl_) {
+              URL.revokeObjectURL(audioDownloadUrl_);
+              audioDownloadUrl_ = undefined;
+              audioBlob_ = undefined;
+          }
           var host = voysisClient.getHost();
           console.log('Sending query to: ', host);
           if (host && host !== '') {
@@ -475,6 +492,19 @@
                   if (help != null) {
                       $('#jsonCode').addClass('is-active');
                       help.removeClass('is-active');
+                  }
+                  audioBlob_ = voysisClient.getVoysisSession().getSavedAudioStream();
+                  if (audioBlob_) {
+                      audioDownloadUrl_ = URL.createObjectURL(audioBlob_);
+                      var ext = 'wav';
+                      if (audioBlob_.type == 'audio/webm') {
+                          ext = 'webm';
+                      }
+                      $('#download-audio').attr('href', audioDownloadUrl_);
+                      $('#download-audio').attr('download', queryResults["id"] + "-client." + ext);
+                  } else {
+                      $('#download-audio').attr('href', '#');
+                      audioBlob_ = undefined;
                   }
               }).catch(function (error) {
                   button.classList.remove('is-active');
@@ -528,6 +558,15 @@
           $('#feedbackModal').removeClass('is-active');
       }
 
+      function checkDownloadAudio() {
+          if (audioBlob_) {
+              return true;
+          } else {
+              alert('There is no captured audio to download');
+              return false;
+          }
+      }
+
       $(function () {
           $('.rating .button').click(function () {
               $('.rating .button .icon .icon-star').removeClass('is-active');
@@ -535,12 +574,21 @@
               $(this).find('i').addClass('is-active');
               currentRating = Number($(this).attr('value'));
           });
-          $('#vad-enabled-checkbox').click(function() {
-            voysisClient.setIgnoreVad(!voysisClient.getIgnoreVad());
-          })
+          var vadEnabledCheckbox = $('#vad-enabled-checkbox');
+          var saveAudioCheckbox = $('#save-audio-checkbox');
+          voysisClient.setIgnoreVad(vadEnabledCheckbox.prop('checked'));
+          voysisClient.setSaveAudioStream(saveAudioCheckbox.prop('checked'));
+          $('#download-audio').toggle(saveAudioCheckbox.prop('checked'));
+          vadEnabledCheckbox.click(function() {
+            voysisClient.setIgnoreVad(this.checked);
+          });
           $('#chatbot-mode-checkbox').click(function() {
             voysisClient.setChatbotMode(!voysisClient.getChatbotMode());
-          })
+          });
+          saveAudioCheckbox.click(function() {
+            $('#download-audio').toggle(this.checked);
+            voysisClient.setSaveAudioStream(this.checked);
+          });
       });
   </script>
  </body>
