@@ -46,6 +46,7 @@
         var sessionChanged_ = false;
         var audioBufferSize_ = 4096;
         var ignoreVad = false;
+        var chatbotMode = false;
 
         function createUuid() {
             function s4() {
@@ -134,9 +135,18 @@
                 ignoreVad = enabled;
                 sessionChanged_ = true;
             },
+            
+            setChatbotMode: function (enabled) {
+                chatbotMode = enabled;
+                sessionChanged_ = true;
+            },
 
             getIgnoreVad: function() {
                 return ignoreVad;
+            },
+            
+            getChatbotMode: function() {
+                return chatbotMode;
             },
 
             getUserId: function () {
@@ -169,7 +179,8 @@
                         autoSendDurations: true,
                         audioBufferSize: audioBufferSize_,
                         userId: userId_,
-                        ignoreVad: ignoreVad
+                        ignoreVad: ignoreVad,
+                        chatbotMode: chatbotMode
                     });
                     sessionChanged_ = false;
                 }

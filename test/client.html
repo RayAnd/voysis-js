@@ -281,6 +281,9 @@
       <section class="modal-card-body">
         <input type="checkbox" name="ignoreVad" id="vad-enabled-checkbox">Ignore Vad<br>
       </section>
+      <section class="modal-card-body">
+        <input type="checkbox" name="chatbotMode" id="chatbot-mode-checkbox">Chatbot Mode<br>
+      </section>
     </div>
   </div>
 
@@ -534,6 +537,9 @@
           });
           $('#vad-enabled-checkbox').click(function() {
             voysisClient.setIgnoreVad(!voysisClient.getIgnoreVad());
+          })
+          $('#chatbot-mode-checkbox').click(function() {
+            voysisClient.setChatbotMode(!voysisClient.getChatbotMode());
           })
       });
   </script>
