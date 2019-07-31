@@ -114,6 +114,9 @@
             },
             'context': context || {}
         };
+        if(args_.chatbotMode) {
+            queryEntity.interactionType = 'CHATBOT';
+        }
         if (conversationId) {
             queryEntity.conversationId = conversationId;
         }
