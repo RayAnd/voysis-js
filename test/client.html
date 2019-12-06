@@ -319,8 +319,12 @@
           } else {
               var hostname = getUrlParameter('hostname');
               var refreshToken = getUrlParameter('refreshToken');
+              var streamingAudioDeadline = getUrlParameter('streamingAudioDeadline');
               if (refreshToken) {
                   voysisClient.setRefreshToken(refreshToken);
+              }
+              if (streamingAudioDeadline) {
+                voysisClient.setStreamingAudioDeadline(streamingAudioDeadline);                
               }
               var lastHostname = voysisClient.getHost();
               $('#gettingStartedEmail').val(voysisClient.getEmail());
