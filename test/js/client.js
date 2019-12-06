@@ -185,7 +185,7 @@
                 sessionChanged_ = true;
             },
             
-            getStreamingAudioDeadline: function (streamingAudioDeadline) {
+            getStreamingAudioDeadline: function () {
                 return streamingAudioDeadline_;
             },
 
