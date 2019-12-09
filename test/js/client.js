@@ -44,6 +44,7 @@
         var previousQueryContext_;
         var queryConversationId_;
         var sessionChanged_ = false;
+        var streamingAudioDeadline_ = 20000;
         var audioBufferSize_ = 4096;
         var ignoreVad = false;
         var chatbotMode = false;
@@ -177,6 +178,15 @@
                 audioBufferSize_ = audioBufferSize;
             },
 
+            setStreamingAudioDeadline: function (streamingAudioDeadline) {
+                streamingAudioDeadline_ = streamingAudioDeadline;
+                sessionChanged_ = true;
+            },
+            
+            getStreamingAudioDeadline: function () {
+                return streamingAudioDeadline_;
+            },
+
             getVoysisSession: function () {
                 if (!voysisSession_ || sessionChanged_) {
                     previousQueryContext_ = null;
@@ -185,7 +195,7 @@
                         host: host_,
                         audioProfileId: audioProfileId_,
                         debugEnabled: true,
-                        streamingAudioDeadline: 10000,
+                        streamingAudioDeadline: streamingAudioDeadline_,
                         autoSendDurations: true,
                         audioBufferSize: audioBufferSize_,
                         userId: userId_,
