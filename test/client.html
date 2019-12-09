@@ -586,8 +586,8 @@
           vadEnabledCheckbox.click(function() {
             voysisClient.setIgnoreVad(this.checked);
           });
-          $('#chatbot-mode-checkbox').click(function() {
-            voysisClient.setChatbotMode(!voysisClient.getChatbotMode());
+          $('#chatbot-mode-checkbox').prop('checked', voysisClient.getChatbotMode()).click(function() {
+            voysisClient.setChatbotMode($(this).prop('checked'));
           });
           saveAudioCheckbox.click(function() {
             $('#download-audio').toggle(this.checked);
