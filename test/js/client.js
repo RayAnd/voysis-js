@@ -30,7 +30,6 @@
         const REFRESH_TOKEN = 'RefreshToken';
         const EMAIL = 'Email';
         const USER_ID = 'UserId';
-        const STREAMING_AUDIO_DEADLINE = 'StreamingAudioDeadline';
         const localStorage = window.localStorage;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext_ = null;
@@ -181,7 +180,6 @@
 
             setStreamingAudioDeadline: function (streamingAudioDeadline) {
                 streamingAudioDeadline_ = streamingAudioDeadline;
-                localStorage.setItem(STREAMING_AUDIO_DEADLINE, streamingAudioDeadline);
                 sessionChanged_ = true;
             },
             
